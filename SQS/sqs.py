@@ -19,20 +19,20 @@ for site in siteList:
 	namePattern = '\.(.*?)\.(com|net|com-.*).7z'
 	nameRes = re.search(namePattern, site)
 	if nameRes:
-		siteName = nameRes.group(1)
+		siteName = nameRes.group()
 
 		response = sqs.send_message(
-	    QueueUrl=queue['QueueUrl'],
-	    DelaySeconds=10,
-	    MessageAttributes={
-	        'Site': {
-	            'DataType': 'String',
-	            'StringValue': siteName
-	        }
-	    },
-	    MessageBody=(
-	        site
-	    )
+		    QueueUrl=queue['QueueUrl'],
+		    DelaySeconds=10,
+		    MessageAttributes={
+		        'Site': {
+		            'DataType': 'String',
+		            'StringValue': siteName
+		        }
+		    },
+		    MessageBody=(
+		        site
+		    )
 		)
 
 		print(response['MessageId'])
