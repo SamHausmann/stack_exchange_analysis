@@ -15,7 +15,7 @@ for site in siteList:
 
 	if siteRes:
 		site = siteRes.group()
-	print site
+
 	namePattern = '\.(.*?)\.(com|net|com-.*).7z'
 	nameRes = re.search(namePattern, site)
 	if nameRes:
