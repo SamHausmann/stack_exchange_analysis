@@ -12,14 +12,18 @@ for site in siteList:
 
 	sitePattern = '.*?.(com|net|com-.*).7z'
 	siteRes = re.search(sitePattern, site)
+	askUbuntuRes = re.search('askubuntu.com.7z', site)
 
 	if siteRes:
 		site = siteRes.group()
+	elif askUbuntuRes:
+		site = askUbuntuRes.group()
 
-	namePattern = '\.(.*?)\.(com|net|com-.*).7z'
+	namePattern = '([^.]*)'
 	nameRes = re.search(namePattern, site)
 	if nameRes:
-		siteName = nameRes.group()
+		siteName = nameRes.group(1)
+		print siteName
 
 		response = sqs.send_message(
 		    QueueUrl=queue['QueueUrl'],
