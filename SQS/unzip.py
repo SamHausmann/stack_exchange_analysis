@@ -7,7 +7,6 @@ import sys
 sqs = boto3.client('sqs')
 url = sqs.get_queue_url(QueueName='sample_site_queue')
 
-i = 0
 while sqs.get_queue_attributes(QueueUrl=url['QueueUrl'], AttributeNames=['ApproximateNumberOfMessages']) > 1:
 	response = sqs.receive_message(
     QueueUrl=url['QueueUrl'],
