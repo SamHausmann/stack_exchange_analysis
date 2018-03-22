@@ -1,6 +1,5 @@
 import boto3
 import re
-import pylzma
 import os
 import sys
 

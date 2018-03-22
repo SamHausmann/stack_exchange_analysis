@@ -8,16 +8,20 @@ queue = sqs.create_queue(QueueName='sample_site_queue')
 f = inputfile = open('sites.txt', 'r')
 siteList = list(f)
 
+specialCases = ['askubuntu.com.7z', 'superuser.com.7z']
+
 for site in siteList:
 
 	sitePattern = '.*?.(com|net|com-.*).7z'
 	siteRes = re.search(sitePattern, site)
-	askUbuntuRes = re.search('askubuntu.com.7z', site)
 
 	if siteRes:
 		site = siteRes.group()
-	elif askUbuntuRes:
-		site = askUbuntuRes.group()
+	else:
+		for case in specialCases:
+			specialCaseRes = re.search(case, site)
+			if specialCaseRes:
+				site = specialCaseRes.group()
 
 	namePattern = '([^.]*)'
 	nameRes = re.search(namePattern, site)
