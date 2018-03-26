@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<tags>
+  <row Id="2" TagName="transformations" Count="107" ExcerptPostId="116" WikiPostId="115" />
+  <row Id="3" TagName="projections" Count="42" />
+  <row Id="4" TagName="opengl" Count="335" ExcerptPostId="174" WikiPostId="173" />
+  <row Id="5" TagName="texture" Count="123" ExcerptPostId="1661" WikiPostId="1660" />
+  <row Id="6" TagName="bitmap-graphics" Count="4" />
+  <row Id="7" TagName="vector-graphics" Count="29" ExcerptPostId="2040" WikiPostId="2039" />
+  <row Id="8" TagName="performance" Count="40" />
+  <row Id="9" TagName="interpolation" Count="29" />
+  <row Id="10" TagName="stencil-test" Count="6" />
+  <row Id="11" TagName="raytracing" Count="173" ExcerptPostId="192" WikiPostId="191" />
+  <row Id="12" TagName="algorithm" Count="94" />
+  <row Id="15" TagName="geometry-shader" Count="3" ExcerptPostId="2263" WikiPostId="2262" />
+  <row Id="16" TagName="stencil-buffer" Count="7" />
+  <row Id="17" TagName="subdivision" Count="9" />
+  <row Id="18" TagName="rendering" Count="171" />
+  <row Id="21" TagName="noise" Count="21" ExcerptPostId="255" WikiPostId="254" />
+  <row Id="22" TagName="procedural-generation" Count="12" />
+  <row Id="25" TagName="directx12" Count="14" />
+  <row Id="27" TagName="image" Count="21" />
+  <row Id="28" TagName="compression" Count="11" />
+  <row Id="30" TagName="artifacts" Count="11" />
+  <row Id="31" TagName="vertex-buffer-object" Count="26" />
+  <row Id="32" TagName="gpu" Count="69" />
+  <row Id="33" TagName="optimisation" Count="27" />
+  <row Id="35" TagName="tile-based-rendering" Count="3" />
+  <row Id="36" TagName="virtual-reality" Count="17" />
+  <row Id="37" TagName="scanline" Count="4" />
+  <row Id="39" TagName="directx11" Count="20" />
+  <row Id="40" TagName="signed-distance-field" Count="6" />
+  <row Id="41" TagName="compute-shader" Count="25" />
+  <row Id="42" TagName="pixel-shader" Count="15" />
+  <row Id="43" TagName="triangulation" Count="14" />
+  <row Id="45" TagName="color" Count="57" />
+  <row Id="46" TagName="sampling" Count="30" />
+  <row Id="47" TagName="pixels" Count="9" />
+  <row Id="48" TagName="blur" Count="12" />
+  <row Id="49" TagName="post-processing" Count="11" />
+  <row Id="50" TagName="depth-of-field" Count="3" />
+  <row Id="51" TagName="memory" Count="14" />
+  <row Id="52" TagName="gamma" Count="12" />
+  <row Id="53" TagName="compatibility" Count="2" />
+  <row Id="54" TagName="3d" Count="122" ExcerptPostId="2229" WikiPostId="2228" />
+  <row Id="55" TagName="stereo-rendering" Count="4" />
+  <row Id="57" TagName="subsurface-scattering" Count="8" />
+  <row Id="58" TagName="brightness" Count="8" />
+  <row Id="60" TagName="image-comparison" Count="5" />
+  <row Id="62" TagName="physically-based" Count="46" />
+  <row Id="63" TagName="reflection" Count="23" />
+  <row Id="64" TagName="refraction" Count="10" />
+  <row Id="65" TagName="glsl" Count="96" ExcerptPostId="198" WikiPostId="197" />
+  <row Id="66" TagName="debugging" Count="8" />
+  <row Id="68" TagName="shader" Count="120" ExcerptPostId="265" WikiPostId="264" />
+  <row Id="69" TagName="color-separation" Count="3" />
+  <row Id="70" TagName="conversion" Count="5" />
+  <row Id="71" TagName="edge-detection" Count="11" />
+  <row Id="72" TagName="fog" Count="3" />
+  <row Id="74" TagName="scene-description" Count="5" />
+  <row Id="75" TagName="transparency" Count="19" />
+  <row Id="76" TagName="lighting" Count="91" />
+  <row Id="77" TagName="shading" Count="31" />
+  <row Id="78" TagName="specular" Count="23" />
+  <row Id="80" TagName="depth-map" Count="11" />
+  <row Id="81" TagName="volumetric" Count="9" />
+  <row Id="82" TagName="atmospherics" Count="3" />
+  <row Id="83" TagName="scattering" Count="4" />
+  <row Id="85" TagName="deferred-rendering" Count="12" />
+  <row Id="87" TagName="antialiasing" Count="27" />
+  <row Id="88" TagName="curve" Count="15" />
+  <row Id="89" TagName="real-time" Count="40" ExcerptPostId="268" WikiPostId="267" />
+  <row Id="91" TagName="trackball" Count="2" />
+  <row Id="92" TagName="bounding-volume-hierarchy" Count="4" />
+  <row Id="93" TagName="photo-realistic" Count="10" />
+  <row Id="94" TagName="offline" Count="2" ExcerptPostId="270" WikiPostId="269" />
+  <row Id="95" TagName="animation" Count="24" />
+  <row Id="96" TagName="demoscene" Count="2" />
+  <row Id="97" TagName="raymarching" Count="8" />
+  <row Id="99" TagName="drawing" Count="6" />
+  <row Id="100" TagName="2d" Count="29" />
+  <row Id="101" TagName="bezier-curve" Count="17" />
+  <row Id="102" TagName="webgl" Count="44" ExcerptPostId="1779" WikiPostId="1778" />
+  <row Id="103" TagName="javascript" Count="20" />
+  <row Id="105" TagName="android" Count="4" />
+  <row Id="111" TagName="color-management" Count="9" />
+  <row Id="113" TagName="mobile" Count="5" />
+  <row Id="114" TagName="shadow-mapping" Count="19" />
+  <row Id="116" TagName="efficiency" Count="4" />
+  <row Id="121" TagName="simulation" Count="16" />
+  <row Id="122" TagName="monte-carlo" Count="22" />
+  <row Id="123" TagName="human-vision" Count="4" />
+  <row Id="124" TagName="pixel-graphics" Count="15" />
+  <row Id="125" TagName="line-drawing" Count="19" />
+  <row Id="126" TagName="ambient-occlusion" Count="10" />
+  <row Id="127" TagName="shadow" Count="35" ExcerptPostId="1740" WikiPostId="1739" />
+  <row Id="129" TagName="importance-sampling" Count="14" />
+  <row Id="130" TagName="physics" Count="21" />
+  <row Id="131" TagName="particles" Count="9" />
+  <row Id="132" TagName="hardware" Count="8" />
+  <row Id="133" TagName="terminology" Count="8" />
+  <row Id="134" TagName="uv-mapping" Count="24" />
+  <row Id="135" TagName="color-science" Count="21" />
+  <row Id="136" TagName="gaussian-blur" Count="13" />
+  <row Id="139" TagName="fragment-shader" Count="17" />
+  <row Id="140" TagName="opengl-es" Count="23" />
+  <row Id="141" TagName="distribution" Count="11" />
+  <row Id="144" TagName="grid" Count="7" />
+  <row Id="145" TagName="fourier-transform" Count="4" />
+  <row Id="146" TagName="hlsl" Count="25" />
+  <row Id="147" TagName="api" Count="7" />
+  <row Id="148" TagName="direct3d" Count="7" />
+  <row Id="150" TagName="space-partitioning" Count="3" />
+  <row Id="151" TagName="computational-geometry" Count="76" ExcerptPostId="2227" WikiPostId="2226" />
+  <row Id="152" TagName="font-rendering" Count="6" />
+  <row Id="154" TagName="theory" Count="3" />
+  <row Id="155" TagName="fluid-sim" Count="9" />
+  <row Id="160" TagName="nurbs" Count="11" />
+  <row Id="161" TagName="raster-image" Count="9" />
+  <row Id="162" TagName="radiosity" Count="12" />
+  <row Id="164" TagName="scene-graph" Count="7" />
+  <row Id="167" TagName="opencl" Count="7" />
+  <row Id="168" TagName="gpgpu" Count="12" ExcerptPostId="4243" WikiPostId="4242" />
+  <row Id="170" TagName="polygon" Count="29" />
+  <row Id="171" TagName="clipping" Count="21" />
+  <row Id="172" TagName="data-structure" Count="12" />
+  <row Id="174" TagName="space" Count="3" />
+  <row Id="175" TagName="occlusion" Count="5" />
+  <row Id="176" TagName="affine-transformations" Count="16" />
+  <row Id="177" TagName="denoise" Count="3" />
+  <row Id="178" TagName="video" Count="8" />
+  <row Id="179" TagName="image-processing" Count="92" />
+  <row Id="182" TagName="subpixel-rendering" Count="6" />
+  <row Id="1182" TagName="implementation" Count="3" />
+  <row Id="1183" TagName="geometry" Count="62" />
+  <row Id="1187" TagName="3dtexture" Count="7" />
+  <row Id="1188" TagName="mesh" Count="49" />
+  <row Id="1191" TagName="space-filling" Count="2" />
+  <row Id="1193" TagName="motion" Count="5" />
+  <row Id="1194" TagName="material" Count="18" />
+  <row Id="1198" TagName="brdf" Count="61" />
+  <row Id="1201" TagName="pbr" Count="26" />
+  <row Id="1202" TagName="perspective" Count="31" />
+  <row Id="1203" TagName="mapping" Count="13" />
+  <row Id="1204" TagName="model" Count="13" />
+  <row Id="1209" TagName="cuda" Count="6" />
+  <row Id="1211" TagName="display-lists" Count="3" />
+  <row Id="1213" TagName="constant-buffer" Count="3" />
+  <row Id="1215" TagName="uniform-buffer-object" Count="6" />
+  <row Id="1218" TagName="c++" Count="84" />
+  <row Id="1219" TagName="microfacet" Count="4" />
+  <row Id="1224" TagName="height-field" Count="3" ExcerptPostId="1727" WikiPostId="1726" />
+  <row Id="1228" TagName="voxelization" Count="10" />
+  <row Id="1232" TagName="function" Count="2" />
+  <row Id="1238" TagName="types" Count="3" />
+  <row Id="1240" TagName="cad" Count="10" />
+  <row Id="1242" TagName="silhouette" Count="3" />
+  <row Id="1243" TagName="render" Count="8" />
+  <row Id="1244" TagName="photometric" Count="4" />
+  <row Id="1246" TagName="matlab" Count="10" />
+  <row Id="1247" TagName="vectors" Count="18" />
+  <row Id="1249" TagName="capture" Count="4" />
+  <row Id="1250" TagName="hemisphere" Count="3" />
+  <row Id="1253" TagName="glm" Count="9" />
+  <row Id="1254" TagName="pathtracing" Count="77" ExcerptPostId="2561" WikiPostId="2560" />
+  <row Id="1255" TagName="filtering" Count="19" />
+  <row Id="1256" TagName="supersampling" Count="5" />
+  <row Id="1257" TagName="global-illumination" Count="31" />
+  <row Id="1259" TagName="diffuse" Count="13" />
+  <row Id="1265" TagName="integral" Count="3" />
+  <row Id="1268" TagName="fresnel" Count="8" />
+  <row Id="1269" TagName="matrix" Count="45" />
+  <row Id="1270" TagName="unity" Count="10" />
+  <row Id="1271" TagName="masking" Count="3" />
+  <row Id="1273" TagName="ibl" Count="2" />
+  <row Id="1274" TagName="normal-mapping" Count="20" />
+  <row Id="1275" TagName="gltf" Count="5" ExcerptPostId="4057" WikiPostId="4056" />
+  <row Id="1277" TagName="buffers" Count="14" />
+  <row Id="1278" TagName="realistic" Count="5" />
+  <row Id="1282" TagName="mathematics" Count="73" />
+  <row Id="1283" TagName="2d-graphics" Count="16" />
+  <row Id="1284" TagName="tesselation" Count="4" />
+  <row Id="1289" TagName="vtk" Count="2" />
+  <row Id="1291" TagName="rasterizer" Count="26" ExcerptPostId="4245" WikiPostId="4244" />
+  <row Id="1297" TagName="midpoint" Count="3" />
+  <row Id="1299" TagName="volumetric-scattering" Count="5" />
+  <row Id="1300" TagName="vulkan" Count="14" ExcerptPostId="4752" WikiPostId="4751" />
+  <row Id="1303" TagName="processing" Count="2" ExcerptPostId="3691" WikiPostId="3690" />
+  <row Id="1305" TagName="blending" Count="6" />
+  <row Id="1307" TagName="z-buffer" Count="3" />
+  <row Id="1310" TagName="untagged" Count="5" ExcerptPostId="5830" WikiPostId="5829" />
+  <row Id="1315" TagName="driver" Count="3" />
+  <row Id="1316" TagName="legacy-opengl" Count="8" />
+  <row Id="1317" TagName="camera-matrix" Count="11" />
+  <row Id="1319" TagName="compositing" Count="3" ExcerptPostId="5283" WikiPostId="5282" />
+  <row Id="1320" TagName="pentile" Count="1" ExcerptPostId="4174" WikiPostId="4173" />
+  <row Id="1326" TagName="multithreading" Count="5" />
+  <row Id="1327" TagName="ray" Count="9" />
+  <row Id="1329" TagName="frame-buffer" Count="11" />
+  <row Id="1330" TagName="area" Count="3" />
+  <row Id="1332" TagName="camera" Count="10" />
+  <row Id="1337" TagName="spherical-harmonics" Count="8" />
+  <row Id="1339" TagName="directx" Count="9" />
+  <row Id="1341" TagName="mipmap" Count="7" />
+  <row Id="1344" TagName="ui" Count="2" />
+  <row Id="1345" TagName="diagram" Count="3" />
+  <row Id="1352" TagName="photon-mapping" Count="3" />
+  <row Id="1354" TagName="three.js" Count="2" />
+  <row Id="1360" TagName="spectral" Count="3" />
+  <row Id="1362" TagName="ggx" Count="2" />
+  <row Id="1367" TagName="distortion" Count="3" />
+  <row Id="1368" TagName="alpha" Count="2" />
+  <row Id="1369" TagName="linear-algebra" Count="8" />
+  <row Id="1372" TagName="transform-feedback" Count="2" />
+  <row Id="1374" TagName="direct-state-access" Count="1" />
+  <row Id="1375" TagName="synchronization" Count="4" />
+  <row Id="1376" TagName="vram" Count="1" />
+  <row Id="1377" TagName="engine" Count="1" />
+  <row Id="1378" TagName="layering" Count="1" />
+  <row Id="1379" TagName="directxmath" Count="1" />
+  <row Id="1380" TagName="simd" Count="1" />
+  <row Id="1381" TagName="open-scene-graph" Count="1" />
+  <row Id="1382" TagName="maths" Count="1" />
+  <row Id="1385" TagName="ndf" Count="2" />
+  <row Id="1386" TagName="smith" Count="1" />
+  <row Id="1388" TagName="lines" Count="1" />
+  <row Id="1389" TagName="image-store" Count="1" />
+  <row Id="1390" TagName="image-load-store" Count="1" />
+  <row Id="1391" TagName="morton-code" Count="1" />
+  <row Id="1392" TagName="perception" Count="1" />
+  <row Id="1393" TagName="metal" Count="5" />
+  <row Id="1394" TagName="anisotropic-filtering" Count="1" />
+  <row Id="1395" TagName="multisampling" Count="1" />
+  <row Id="1396" TagName="float" Count="1" />
+  <row Id="1397" TagName="half" Count="1" />
+  <row Id="1398" TagName="snorm" Count="1" />
+  <row Id="1399" TagName="glui" Count="1" />
+  <row Id="1400" TagName="gui" Count="1" />
+</tags>

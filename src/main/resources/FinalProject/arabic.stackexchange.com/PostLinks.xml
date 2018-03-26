@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<postlinks>
+  <row Id="87" CreationDate="2015-07-16T01:51:20.937" PostId="104" RelatedPostId="79" LinkTypeId="1" />
+  <row Id="185" CreationDate="2015-07-20T00:39:18.947" PostId="150" RelatedPostId="156" LinkTypeId="1" />
+  <row Id="191" CreationDate="2015-07-20T05:06:55.990" PostId="150" RelatedPostId="146" LinkTypeId="1" />
+  <row Id="197" CreationDate="2015-07-20T18:46:41.423" PostId="174" RelatedPostId="136" LinkTypeId="1" />
+  <row Id="198" CreationDate="2015-07-20T18:48:44.267" PostId="90" RelatedPostId="136" LinkTypeId="1" />
+  <row Id="199" CreationDate="2015-07-21T00:15:43.460" PostId="143" RelatedPostId="127" LinkTypeId="1" />
+  <row Id="208" CreationDate="2015-07-21T15:10:26.243" PostId="181" RelatedPostId="179" LinkTypeId="1" />
+  <row Id="209" CreationDate="2015-07-21T15:10:26.243" PostId="181" RelatedPostId="183" LinkTypeId="1" />
+  <row Id="260" CreationDate="2015-07-29T07:50:47.913" PostId="216" RelatedPostId="9" LinkTypeId="1" />
+  <row Id="349" CreationDate="2015-08-19T01:35:09.563" PostId="288" RelatedPostId="214" LinkTypeId="1" />
+  <row Id="350" CreationDate="2015-08-19T03:48:29.220" PostId="288" RelatedPostId="253" LinkTypeId="1" />
+</postlinks>
