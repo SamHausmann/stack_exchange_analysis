@@ -37,8 +37,6 @@ while sqs.get_queue_attributes(QueueUrl=url['QueueUrl'], AttributeNames=['Approx
 		os.system('rm -rf ' + message['MessageAttributes']['Site']['StringValue'])
 		os.system('rm ' + message['Body'])
 
-		sys.exit()
-
 		sqs.delete_message(QueueUrl=url['QueueUrl'], ReceiptHandle=receipt_handle)
 	else:
 		print response
