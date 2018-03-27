@@ -9,12 +9,19 @@ object FinalProject {
 
   val conf: SparkConf = new SparkConf().setAppName("SimpleSpark").setMaster("local[2]")
   val sc: SparkContext = new SparkContext(conf)
+  sc.hadoopConfiguration.set("fs.s3a.access.key", "")
+  sc.hadoopConfiguration.set("fs.s3a.secret.key", "")
   val spark: SparkSession = SparkSession.builder().config(conf).getOrCreate()
   import spark.implicits._
 
   val dataPointRow : String = "  <row "
 
   def main(args: Array[String]) {
+
+    val test = sc.textFile("s3a://stack.exchange.analysis/testfile.xml")
+    test.collect().map(println)
+
+
     val badgesRdd: RDD[Badge] = sc.textFile(Badges.filePath).filter(s => s.startsWith(dataPointRow)).map(Badges.Parse)
 //    badgesRdd.collect().map(println)
     val usersRdd : RDD[User] = sc.textFile(Users.filePath).filter(s => s.startsWith(dataPointRow)).map(Users.Parse)
@@ -31,13 +38,13 @@ object FinalProject {
 //    votesRdd.collect().map(println)
 
     val badgesDF = badgesRdd.toDF()
-    val resultBadgeComputation = badgesDF
+    val resultBadges = badgesDF
       .groupBy(badgesDF("UserId"), badgesDF("Name"))
       .count()
       .orderBy(badgesDF("UserId"), badgesDF("Name"))
 
     val postsDF = postsRdd.toDF()
-    val resultsPostsDF = postsDF
+    val resultsPosts = postsDF
       .filter(postsDF("PostTypeId") === 1)
       .select(postsDF("OwnerUserId"),
       postsDF("AcceptedAnswerId"),
@@ -47,10 +54,12 @@ object FinalProject {
       postsDF("Body"),
       postsDF("OwnerUserId"),
       postsDF("CommentCount"),
-      postsDF("FavoriteCount"))
+      postsDF("FavoriteCount")).toDF()
 
-//    resultBadgeComputation.collect().map(println)
-    resultsPostsDF.collect().map(println)
+    val joined = resultsPosts.join(resultBadges, resultsPosts("OwnerUserId") === badgesDF("UserId"), "left_outer")
+    joined.printSchema()
+    joined.show()
+
     sc.stop()
   }
 }
