@@ -30,7 +30,10 @@ while sqs.get_queue_attributes(QueueUrl=url['QueueUrl'], AttributeNames=['Approx
 		for file in os.listdir(message['MessageAttributes']['Site']['StringValue']):
 			path = message['MessageAttributes']['Site']['StringValue'] + '/'
 			name = os.path.basename(file)
-			key = message['MessageAttributes']['Site']['StringValue'] + '_' + file
+			if 'meta' in message['Body']:
+				key = message['MessageAttributes']['Site']['StringValue'] + '_meta_' + file
+			else:
+				key = message['MessageAttributes']['Site']['StringValue'] + '_' + file
 			with open(path + file, 'rb') as data:
     				s3.upload_fileobj(data, bucket, key)
 
