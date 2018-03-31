@@ -1,10 +1,6 @@
 package XMLParse
 
-case class PostLink(Id: Int,
-                CreationDate: Long,
-                PostId: Int,
-                RelatedPostId: Int,
-                PostLinkTypeId: Option[Int])
+case class PostLink(LinkPostId: Int)
 
 // Class to store information related to a specific User
 object PostLinks extends BaseFile {
@@ -13,11 +9,6 @@ object PostLinks extends BaseFile {
 
   private[XMLParse] def Parse(postLink: String): PostLink = {
     val xmlNode = scala.xml.XML.loadString(postLink)
-    PostLink(
-      (xmlNode \ "@Id").text.toInt,
-      parseDate(xmlNode \ "@CreationDate"),
-      (xmlNode \ "@PostId").text.toInt,
-      (xmlNode \ "@RelatedPostId").text.toInt,
-      parseOptionInt(xmlNode \ "@PostLinkTypeId"))
+    PostLink((xmlNode \ "@PostId").text.toInt)
   }
 }
