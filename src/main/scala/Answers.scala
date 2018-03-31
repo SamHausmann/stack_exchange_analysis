@@ -5,7 +5,7 @@ case class Answer(AnswerId: Int,
                 AnswerCreationDate: Long,
                 Score: Int,
                 ViewCount: Int,
-                Body: String,
+                BodyLength: Int,
                 OwnerUserId: Int,
                 CommentCount: Int,
                 FavoriteCount: Int)
@@ -19,7 +19,7 @@ object Answers extends BaseFile {
       post.CreationDate,
       post.Score,
       post.ViewCount.getOrElse(0),
-      post.Body,
+      post.Body.split(" ").length,
       post.OwnerUserId,
       post.CommentCount.getOrElse(0),
       post.FavoriteCount.getOrElse(0))

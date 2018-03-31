@@ -1,6 +1,7 @@
 package XMLParse
 
 case class Comment(CommentPostId: Int,
+                   CommentUserId: Option[Int],
                    Score: Int)
 
 object Comments extends BaseFile {
@@ -11,6 +12,7 @@ object Comments extends BaseFile {
     val xmlNode = scala.xml.XML.loadString(comment)
     Comment(
       (xmlNode \ "@PostId").text.toInt,
+      parseOptionInt(xmlNode \ "@UserId"),
       (xmlNode \ "@Score").text.toInt)
   }
 }

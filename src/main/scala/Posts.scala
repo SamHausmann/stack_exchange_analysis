@@ -9,6 +9,7 @@ case class Post(Id: Int,
                 ViewCount: Option[Int],
                 Body: String,
                 OwnerUserId: Int,
+                ClosedDate: Option[Long],
                 CommentCount: Option[Int],
                 FavoriteCount: Option[Int])
 
@@ -28,6 +29,7 @@ object Posts extends BaseFile {
     parseOptionInt(xmlNode \ "@ViewCount"),
     (xmlNode \ "@Body").text,
     (xmlNode \ "@OwnerUserId").text.toInt,
+    parseOptionDate(xmlNode \ "@ClosedDate"),
     parseOptionInt(xmlNode \ "@CommentCount"),
     parseOptionInt(xmlNode \ "@FavoriteCount"))
   }

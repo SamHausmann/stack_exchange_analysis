@@ -2,9 +2,9 @@ package XMLParse
 
 case class User(UserId: Int,
                 Reputation: Int,
-                CreationDate: Long,
+                UserCreationDate: Long,
                 Age: Option[Int],
-                AboutMe: String,
+                AboutMeLength: Int,
                 Views: Int,
                 UpVotes: Int,
                 DownVotes: Int)
@@ -21,7 +21,7 @@ object Users extends BaseFile {
       (xmlNode \ "@Reputation").text.toInt,
       parseDate(xmlNode \ "@CreationDate"),
       parseOptionInt(xmlNode \ "@Age"),
-      (xmlNode \ "@AboutMe").text,
+      (xmlNode \ "@AboutMe").text.split(" ").length,
       (xmlNode \ "@Views").text.toInt,
       (xmlNode \ "@UpVotes").text.toInt,
       (xmlNode \ "@DownVotes").text.toInt)

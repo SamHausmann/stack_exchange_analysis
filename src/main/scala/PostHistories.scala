@@ -1,6 +1,7 @@
 package XMLParse
 
-case class PostHistory(HistoryPostId: Int)
+case class PostHistory(HistoryPostId: Int,
+                       HistoryUserId: Option[Int])
 
 object PostHistories extends BaseFile {
 
@@ -9,6 +10,7 @@ object PostHistories extends BaseFile {
   private[XMLParse] def Parse(postHistory: String): PostHistory = {
     val xmlNode = scala.xml.XML.loadString(postHistory)
     PostHistory(
-      (xmlNode \ "@PostId").text.toInt)
+      (xmlNode \ "@PostId").text.toInt,
+      parseOptionInt(xmlNode \ "@UserId"))
   }
 }
