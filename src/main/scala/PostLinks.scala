@@ -2,7 +2,6 @@ package XMLParse
 
 case class PostLink(LinkPostId: Int)
 
-// Class to store information related to a specific User
 object PostLinks extends BaseFile {
 
   val filePath = FilePath("FinalProject/PostLinks.xml")

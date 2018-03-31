@@ -1,7 +1,5 @@
 package XMLParse
 
-import XMLParse.Badges.importantBadges
-
 import scala.collection.mutable.ListBuffer
 
 // Class to store information related to a specific User
@@ -19,6 +17,7 @@ object Utility {
 
   // Count the number of occurences of each item in the compare list
   // ex.   (1, 2, 3, 3, 1) (1, 2, 3) -> (2, 1, 2)
+  // ex.   (s1, s2, s3, s3, s1) (s1, s2, s3) -> (2, 1, 2)   // s1 represents a string
   private[XMLParse] def MapListOfItemsToCounts[T](inputList: List[T], compareList: List[T]): List[Int] = {
     compareList.map(item => inputList.count(_ == item))
   }

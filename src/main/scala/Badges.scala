@@ -5,8 +5,6 @@ import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 case class Badge(BadgeUserId: Int,
                  Name: String)
 
-
-// Class to store information related to a specific Badge
 object Badges extends BaseFile {
 
   val filePath = FilePath("FinalProject/Badges.xml")

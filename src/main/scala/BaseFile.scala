@@ -24,15 +24,4 @@ abstract class BaseFile {
     dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"))
     dateFormat.parse(date.text).getTime
   }
-
-  private[XMLParse] def parseOptionDate(date: scala.xml.NodeSeq): Option[Long] = {
-    date.text match {
-      case "" => None
-      case dateText =>
-      // Apparently DateFormat is not threadsafe, and needs to be recreated for each call
-      val dateFormat: SimpleDateFormat = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS")
-      dateFormat.setTimeZone (TimeZone.getTimeZone ("GMT") )
-      Some(dateFormat.parse(dateText).getTime)
-    }
-  }
 }

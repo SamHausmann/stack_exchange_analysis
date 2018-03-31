@@ -2,9 +2,7 @@ package XMLParse
 
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql._
-import org.apache.spark.sql.functions._
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.types._
 
 
 import scala.collection.mutable.ListBuffer
@@ -61,8 +59,6 @@ object FinalProject {
       .map(comment => (comment.CommentPostId, comment.Score))
       .reduceByKey(_ + _)
         .toDF("CommentPostId", "CommentScoreSum")
-//      .map({case (postId, count) => Row(postId, count)})
-//    val commentCountsDF = spark.createDataFrame(badgeCountsRdd, Comments.commentsDFSchema)
 //    commentCountsDF.show()
 
     // Create a DF of Questions
@@ -110,9 +106,9 @@ object FinalProject {
 
 //      .join(badgesDF, "UserID")  /// Could do this using common field
     val userData = usersDF.join(badgesDF, usersDF("UserId") === badgesDF("BadgeUserId"), "left_outer")
-      .drop("BadgeUserId")
-      .na.fill(0)
+      .drop("BadgeUserId").na.fill(0)
 //    userData.show()
+
     val totalAnswer = answerFeaturesDF.join(commentCountsDF, answerFeaturesDF("AnswerId") === commentCountsDF("CommentPostId"), "left_outer")
       .join(postHistoriesDF, $"AnswerId" === postHistoriesDF("HistoryPostId"), "left_outer")
       .join(postLinksDF, $"AnswerId" === postLinksDF("LinkPostId"), "left_outer")
@@ -122,15 +118,11 @@ object FinalProject {
     val finalAnswerJoin = totalAnswer.join(userData, totalAnswer("OwnerUserId") === userData("UserId"), "left_outer").drop("OwnerUserId")
     finalAnswerJoin.show()
 
-//    val joined = resultsPosts.join(resultBadges, resultsPosts("OwnerUserId") === badgesDF("UserId"), "left_outer")
-//    joined.printSchema()
-//    joined.show()
-
     sc.stop()
   }
 }
 
-// Old work trying to get the spark-xml library to function properly
+////// Old work trying to get the spark-xml library to function properly
 //    val test: String = sc.textFile(Users.FilePath).map(str => str.replaceAll(" />", "></row>")).reduce(_ + _)
 
 //     val df: DataFrame =
@@ -146,25 +138,7 @@ object FinalProject {
 //      .option("rowTag", "row")
 //      .load(Users.FilePath)
 
-
-// Old work on Badges dataframe:
-//    val badgesDF = badgesRdd.toDF()
-//    val resultBadges = badgesDF
-//      .groupBy(badgesDF("UserId"))
-//      .agg(sum(badgesDF("Name").as[String]).when(badgesDF("Name").as[String] === "Nice Question", 1).otherwise(0))
-//      .orderBy(badgesDF("UserId"))
-//      .where(badgesDF("Name").isin(importantBadges:_*))
-
-//    def projectedColumns(columns: List[String]): List[Column] = {
-//      columns.map(column => {
-//        badgesDF.select(badgesDF("count"))
-//          .where(badgesDF("Name") === column)
-//          .as(column)
-//      })
-//    }
-
-//    badgesDF.select(projectedColumns())
-//  }
+////// Old work on badgesDF
 
 //    val badgesDF = badgesRdd.toDF()
 //    val resultBadges = badgesDF

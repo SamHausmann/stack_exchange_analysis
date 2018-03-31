@@ -12,7 +12,6 @@ case class Post(Id: Int,
                 CommentCount: Option[Int],
                 FavoriteCount: Option[Int])
 
-// Class to store information related to a specific User
 object Posts extends BaseFile {
 
   val filePath = FilePath("FinalProject/Posts.xml")

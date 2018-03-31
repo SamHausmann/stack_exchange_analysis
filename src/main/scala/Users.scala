@@ -9,7 +9,6 @@ case class User(UserId: Int,
                 UpVotes: Int,
                 DownVotes: Int)
 
-// Class to store information related to a specific User
 object Users extends BaseFile {
 
   val filePath = FilePath("FinalProject/Users.xml")
