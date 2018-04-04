@@ -1,10 +1,10 @@
 package XMLParse
 
+import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.rdd.RDD
-
 
 import scala.collection.mutable.ListBuffer
 
@@ -123,45 +123,48 @@ object FinalProject {
 
 //    val test = sc.textFile("s3a://stack.exchange.analysis/testfile.xml")
 //    test.collect().map(println)
+//    sc..setConf("spark.sql.shuffle.partitions", "300")
 
-    val postsRDD: RDD[Post] = getPostsRDD()
+    val postsRDD: RDD[Post] = getPostsRDD().cache()
     val numPartitions: Int = postsRDD.getNumPartitions
 
-    val answersDF: DataFrame = getAnswersDF(postsRDD).repartition(numPartitions, $"ParentId")
+    spark.sqlContext.setConf("spark.sql.shuffle.partitions", numPartitions.toString)
+
+    val answersDF: DataFrame = getAnswersDF(postsRDD).repartition($"ParentId")
 
     val answerUserIDs: List[Int] = answersDF.select("OwnerUserId").collect().map(_(0).asInstanceOf[Int]).toList
     val answerPostIDs: List[Int] = answersDF.select("AnswerId").collect().map(_(0).asInstanceOf[Int]).toList
 
-    val questionsDF: DataFrame = getQuestionsDF(postsRDD, answerUserIDs).repartition(numPartitions, $"QuestionId")
-    val answerFeaturesDF: DataFrame = getAnswerFeaturesDF(answersDF, questionsDF).repartition(numPartitions, $"AnswerId")
+    val questionsDF: DataFrame = getQuestionsDF(postsRDD, answerUserIDs).repartition($"QuestionId")
+    val answerFeaturesDF: DataFrame = getAnswerFeaturesDF(answersDF, questionsDF).repartition($"AnswerId")
 
-    val badgesDF: DataFrame = getBadgesDF(answerUserIDs).repartition(numPartitions, $"BadgeUserId")
+    val badgesDF: DataFrame = getBadgesDF(answerUserIDs).repartition($"BadgeUserId")
 
-    val usersDF = getUsersDF(answerUserIDs).repartition(numPartitions, $"UserId")
+    val usersDF = getUsersDF(answerUserIDs).repartition($"UserId")
 
-    val commentsDF: DataFrame = getCommentsDf(answerUserIDs).repartition(numPartitions, $"CommentPostId")
-    val commentScoresDF: DataFrame = getCommentScoresDF(commentsDF).repartition(numPartitions, $"CommentScorePostId")
+    val commentsDF: DataFrame = getCommentsDf(answerUserIDs).repartition($"CommentPostId")
+    val commentScoresDF: DataFrame = getCommentScoresDF(commentsDF).repartition($"CommentScorePostId")
 
-    val postLinksDF: DataFrame = getPostLinksDF(answerPostIDs).repartition(numPartitions, $"LinkPostId")
+    val postLinksDF: DataFrame = getPostLinksDF(answerPostIDs).repartition($"LinkPostId")
 
-    val votesDF = getVotesDF(answerPostIDs).repartition(numPartitions, $"VotePostId")
+    val votesDF = getVotesDF(answerPostIDs).repartition($"VotePostId")
 
     val userData: DataFrame = usersDF.join(badgesDF, usersDF("UserId") === badgesDF("BadgeUserId"), "left_outer")
       .drop("BadgeUserId")
       .na.fill(0)
-      .repartition(numPartitions, $"UserId")
+      .repartition($"UserId")
 
     val postData: DataFrame = answerFeaturesDF
       .join(commentScoresDF, $"AnswerId" === commentScoresDF("CommentScorePostId"), "left_outer")
-        .repartition(numPartitions, $"AnswerId")
+        .repartition($"AnswerId")
       .join(postLinksDF, $"AnswerId" === postLinksDF("LinkPostId"), "left_outer")
-      .repartition(numPartitions, $"AnswerId")
+      .repartition($"AnswerId")
       .join(votesDF, $"AnswerId" === votesDF("VotePostId"), "left_outer")
       .drop("VotePostId").drop("LinkPostId")
       .drop("CreationDate").drop("CommentScorePostId")
       .drop("HistoryUserId").drop("HistoryPostId")
       .drop("CommentPostId").drop("CommentUserId")
-      .na.fill(0).repartition(numPartitions, $"OwnerUserId")
+      .na.fill(0).repartition($"OwnerUserId")
 
     val finalAnswerJoin = postData.join(userData, postData("OwnerUserId") === userData("UserId"), "left_outer")
       .drop("OwnerUserId")
