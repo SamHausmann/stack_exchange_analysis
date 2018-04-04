@@ -55,12 +55,6 @@ object FinalProject {
       .agg(sum("Score")).toDF("CommentScorePostId", "SumCommentScore")
   }
 
-//  def getCommentPostUserDF(commentsDF: DataFrame): DataFrame = {
-//    commentsDF
-//      .groupBy(commentsDF("CommentPostId"), commentsDF("CommentUserId"))
-//      .agg(count(commentsDF("*")).as("CommentsByAuthor"))
-//  }
-
   def getPostsRDD(): RDD[Post] = {
     sc.textFile(Posts.filePath).filter(s => s.startsWith(dataPointRow))
       .map(Posts.Parse)
@@ -89,20 +83,6 @@ object FinalProject {
       .drop("AnswerCreationDate").drop("QuestionCreationDate")
       .drop("ParentId").drop("QuestionId")
   }
-
-//  def getPostHistoriesDF(answerUserIDs: List[Int], numPartitions: Int): DataFrame = {
-//    val postHistoriesDF: DataFrame = sc.textFile(PostHistories.filePath)
-//      .filter(s => s.startsWith(dataPointRow))
-//      .map(PostHistories.Parse)
-//      .filter(post => post.HistoryUserId.isDefined)
-//      .filter(postHistory => answerUserIDs.contains(postHistory.HistoryUserId.get))
-//      .toDF()
-//      .repartition(numPartitions, $"HistoryPostId")
-//
-//    postHistoriesDF
-//      .groupBy(postHistoriesDF("HistoryPostId"), postHistoriesDF("HistoryUserId"))
-//      .agg(count(postHistoriesDF("*")).as("PosterEditCount"))
-//  }
 
   def getPostLinksDF(answerPostIDs: List[Int]): DataFrame = {
     sc.textFile(PostLinks.filePath)
@@ -161,9 +141,6 @@ object FinalProject {
 
     val commentsDF: DataFrame = getCommentsDf(answerUserIDs).repartition(numPartitions, $"CommentPostId")
     val commentScoresDF: DataFrame = getCommentScoresDF(commentsDF).repartition(numPartitions, $"CommentScorePostId")
-//    val commentPostUserDF: DataFrame = getCommentPostUserDF(commentsDF).repartition(numPartitions, $"CommentPostId")
-
-//    val postHistoriesUserDF: DataFrame = getPostHistoriesDF(answerUserIDs, numPartitions).repartition(numPartitions, $"HistoryPostId")
 
     val postLinksDF: DataFrame = getPostLinksDF(answerPostIDs).repartition(numPartitions, $"LinkPostId")
 
@@ -175,12 +152,8 @@ object FinalProject {
       .repartition(numPartitions, $"UserId")
 
     val postData: DataFrame = answerFeaturesDF
-//      .join(commentPostUserDF, $"AnswerId" === commentPostUserDF("CommentPostId") && $"OwnerUserId" === commentPostUserDF("CommentUserId"), "left_outer")
-//      .repartition(2, $"AnswerId")
       .join(commentScoresDF, $"AnswerId" === commentScoresDF("CommentScorePostId"), "left_outer")
         .repartition(numPartitions, $"AnswerId")
-//      .join(postHistoriesUserDF, $"AnswerId" === postHistoriesUserDF("HistoryPostId") && $"OwnerUserId" === postHistoriesUserDF("HistoryUserId"), "left_outer")
-//      .repartition(2, $"AnswerId")
       .join(postLinksDF, $"AnswerId" === postLinksDF("LinkPostId"), "left_outer")
       .repartition(numPartitions, $"AnswerId")
       .join(votesDF, $"AnswerId" === votesDF("VotePostId"), "left_outer")
@@ -197,21 +170,3 @@ object FinalProject {
     sc.stop()
   }
 }
-
-//    print("s" + votesDF.rdd.partitions.size)
-//    print("s" + commentPostUserDF.rdd.partitions.size)
-//    print("s" + postHistoriesUserDF.rdd.partitions.size)
-//    print("s" + postLinksDF.rdd.partitions.size)
-//    print("s" + badgesDF.rdd.partitions.size)
-//    print("s" + usersDF.rdd.partitions.size)
-
-//    usersDF.show()
-//    badgesDF.show()
-//    answersDF.show()
-//    questionsDF.show()
-//    answerFeaturesDF.show()
-//    commentsDF.show()
-//    commentScoresDF.show()
-//    postLinksDF.show()
-//    votesDF.show()
-
