@@ -20,7 +20,7 @@ object Answers extends BaseFile {
       post.Score,
       post.ViewCount.getOrElse(0),
       post.Body.split(" ").length,
-      post.OwnerUserId,
+      post.OwnerUserId.get,
       post.CommentCount.getOrElse(0),
       post.FavoriteCount.getOrElse(0))
   }

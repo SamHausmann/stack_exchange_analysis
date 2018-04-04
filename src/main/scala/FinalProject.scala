@@ -20,148 +20,198 @@ object FinalProject {
 
   val dataPointRow : String = "  <row "
 
+  def getBadgesDF(answerUserIDs: List[Int]): DataFrame = {
+    val badgesRdd: RDD[Badge] = sc.textFile(Badges.filePath)
+      .filter(s => s.startsWith(dataPointRow)).map(Badges.Parse)
+      .filter(badge => answerUserIDs.contains(badge.BadgeUserId))
+
+    val badgeCountsRdd: RDD[Row] = badgesRdd
+      .filter(badge => Badges.importantBadges.contains(badge.Name))
+      .map(badge => (badge.BadgeUserId, badge.Name))
+
+      // Avoid GroupByKey
+      .aggregateByKey(ListBuffer.empty[String])(Utility.AddToListBuffer[String],
+      Utility.CombineBuffers[String])
+      .mapValues(_.toList)
+      .mapValues(values => Utility.MapListOfItemsToCounts[String](values, Badges.importantBadges))
+      .map({case (id, badges) => Row(id :: badges:_*)})
+
+    spark.createDataFrame(badgeCountsRdd, Badges.badgesDFSchema)
+  }
+
+  def getCommentsDf(answerUserIDs: List[Int]): DataFrame = {
+    sc.textFile(Comments.filePath)
+      .filter(s => s.startsWith(dataPointRow))
+      .map(Comments.Parse)
+      .filter(comments => comments.CommentUserId.isDefined)
+      .filter(comment => answerUserIDs.contains(comment.CommentUserId.get))
+      .toDF
+  }
+
+  // Get a DF of postId and sum of comment score counts on a post
+  def getCommentScoresDF(commentsDF: DataFrame): DataFrame = {
+    commentsDF
+      .groupBy(commentsDF("CommentPostId"))
+      .agg(sum("Score")).toDF("CommentScorePostId", "SumCommentScore")
+  }
+
+//  def getCommentPostUserDF(commentsDF: DataFrame): DataFrame = {
+//    commentsDF
+//      .groupBy(commentsDF("CommentPostId"), commentsDF("CommentUserId"))
+//      .agg(count(commentsDF("*")).as("CommentsByAuthor"))
+//  }
+
+  def getPostsRDD(): RDD[Post] = {
+    sc.textFile(Posts.filePath).filter(s => s.startsWith(dataPointRow))
+      .map(Posts.Parse)
+      .filter(post => post.OwnerUserId.isDefined)
+  }
+
+  def getAnswersDF(postsRdd: RDD[Post]): DataFrame = {
+    postsRdd
+      .filter(post => post.PostTypeId == 2)
+      .map(post => Answers.Extract(post)).toDF()
+  }
+
+  def getQuestionsDF(postsRDD: RDD[Post], answerUserIDs: List[Int]): DataFrame = {
+    postsRDD
+      .filter(post => answerUserIDs.contains(post.OwnerUserId.get))
+      .filter(post => post.PostTypeId == 1)
+      .filter(post => post.ClosedDate.isEmpty) // Only unclosed questions
+      .map(post => Questions.Extract(post))
+      .toDF()
+  }
+
+  def getAnswerFeaturesDF(answersDF: DataFrame, questionsDF: DataFrame): DataFrame = {
+    questionsDF
+      .join(answersDF, questionsDF("QuestionId") === answersDF("ParentId"), "left_outer")
+      .withColumn("TimeSinceCreation", answersDF("AnswerCreationDate") - questionsDF("QuestionCreationDate"))
+      .drop("AnswerCreationDate").drop("QuestionCreationDate")
+      .drop("ParentId").drop("QuestionId")
+  }
+
+//  def getPostHistoriesDF(answerUserIDs: List[Int], numPartitions: Int): DataFrame = {
+//    val postHistoriesDF: DataFrame = sc.textFile(PostHistories.filePath)
+//      .filter(s => s.startsWith(dataPointRow))
+//      .map(PostHistories.Parse)
+//      .filter(post => post.HistoryUserId.isDefined)
+//      .filter(postHistory => answerUserIDs.contains(postHistory.HistoryUserId.get))
+//      .toDF()
+//      .repartition(numPartitions, $"HistoryPostId")
+//
+//    postHistoriesDF
+//      .groupBy(postHistoriesDF("HistoryPostId"), postHistoriesDF("HistoryUserId"))
+//      .agg(count(postHistoriesDF("*")).as("PosterEditCount"))
+//  }
+
+  def getPostLinksDF(answerPostIDs: List[Int]): DataFrame = {
+    sc.textFile(PostLinks.filePath)
+      .filter(s => s.startsWith(dataPointRow))
+      .map(PostLinks.Parse)
+      .filter(postLink => answerPostIDs.contains(postLink.LinkPostId))
+      .map(postLink => (postLink.LinkPostId, 1))
+      .reduceByKey(_ + _)
+      .toDF("LinkPostId", "LinksCount")
+  }
+
+  def getUsersDF(answerUserIDs: List[Int]): DataFrame = {
+    sc.textFile(Users.filePath)
+      .filter(s => s.startsWith(dataPointRow))
+      .map(Users.Parse)
+      .filter(user => answerUserIDs.contains(user.UserId))
+      .toDF()
+  }
+
+  def getVotesDF(answerPostIDs: List[Int]): DataFrame = {
+    val votesRdd: RDD[Vote] = sc.textFile(Votes.filePath)
+      .filter(s => s.startsWith(dataPointRow))
+      .map(Votes.Parse)
+      .filter(vote => answerPostIDs.contains(vote.VotePostId))
+
+    val voteCountsRdd: RDD[Row] = votesRdd
+      .map(vote => (vote.VotePostId, vote.VoteTypeId))
+      .aggregateByKey(ListBuffer.empty[Int])(Utility.AddToListBuffer[Int],
+        Utility.CombineBuffers[Int])
+      .mapValues(_.toList)
+      .mapValues(values => Utility.MapListOfItemsToCounts(values, Votes.importantVoteTypes.keys.toList))
+      .map({case (id, votes) => Row(id :: votes:_*)})
+
+    spark.createDataFrame(voteCountsRdd, Votes.votesDFSchema)
+  }
+
   def main(args: Array[String]) {
 
 //    val test = sc.textFile("s3a://stack.exchange.analysis/testfile.xml")
 //    test.collect().map(println)
 
+    val postsRDD: RDD[Post] = getPostsRDD()
+    val numPartitions: Int = postsRDD.getNumPartitions
 
-    val badgesRdd: RDD[Badge] = sc.textFile(Badges.filePath).filter(s => s.startsWith(dataPointRow)).map(Badges.Parse).cache()
-//    badgesRdd.collect().map(println)
-    val commentsRdd : RDD[Comment] = sc.textFile(Comments.filePath).filter(s => s.startsWith(dataPointRow)).map(Comments.Parse).cache()
-//    commentsRdd.collect().map(println)
-    val postsRdd : RDD[Post] = sc.textFile(Posts.filePath).filter(s => s.startsWith(dataPointRow)).map(Posts.Parse).cache()
-//    postsRdd.collect().map(println)
-    val postHistoryRdd : RDD[PostHistory] = sc.textFile(PostHistories.filePath).filter(s => s.startsWith(dataPointRow)).map(PostHistories.Parse).cache()
-//    postHistoryRdd.collect().map(println)
-    val postLinksRdd : RDD[PostLink] = sc.textFile(PostLinks.filePath).filter(s => s.startsWith(dataPointRow)).map(PostLinks.Parse).cache()
-//    postLinksRdd.collect().map(println)
-    val usersRdd : RDD[User] = sc.textFile(Users.filePath).filter(s => s.startsWith(dataPointRow)).map(Users.Parse).cache()
-//    usersRdd.collect().map(println)
-    val votesRdd : RDD[Vote] = sc.textFile(Votes.filePath).filter(s => s.startsWith(dataPointRow)).map(Votes.Parse).cache()
-//    votesRdd.collect().map(println)
+    val answersDF: DataFrame = getAnswersDF(postsRDD).repartition(numPartitions, $"ParentId")
 
-    // Get a DF of UserId, B1, B2, B3  where B's represent badges we care about
-    val badgeCountsRdd: RDD[Row] = badgesRdd
-      .filter(badge => Badges.importantBadges.contains(badge.Name))
-      .map(badge => (badge.BadgeUserId, badge.Name))
-      // Avoid GroupByKey
-      .aggregateByKey(ListBuffer.empty[String])(Utility.AddToListBuffer[String],
-        Utility.CombineBuffers[String])
-        .mapValues(_.toList)
-        .mapValues(values => Utility.MapListOfItemsToCounts[String](values, Badges.importantBadges))
-      .map({case (id, badges) => Row(id :: badges:_*)})
+    val answerUserIDs: List[Int] = answersDF.select("OwnerUserId").collect().map(_(0).asInstanceOf[Int]).toList
+    val answerPostIDs: List[Int] = answersDF.select("AnswerId").collect().map(_(0).asInstanceOf[Int]).toList
 
-    val badgesDF = spark.createDataFrame(badgeCountsRdd, Badges.badgesDFSchema)
-//    badgesDF.show()
+    val questionsDF: DataFrame = getQuestionsDF(postsRDD, answerUserIDs).repartition(numPartitions, $"QuestionId")
+    val answerFeaturesDF: DataFrame = getAnswerFeaturesDF(answersDF, questionsDF).repartition(numPartitions, $"AnswerId")
 
-    val commentsDF = commentsRdd.filter(comments => comments.CommentUserId.isDefined).toDF
+    val badgesDF: DataFrame = getBadgesDF(answerUserIDs).repartition(numPartitions, $"BadgeUserId")
 
-    // Get a DF of postId and sum of comment score counts on a post
-    val commentScoresDF = commentsDF
-      .groupBy(commentsDF("CommentPostId"))
-        .agg(sum("Score")).toDF("CommentScorePostId", "SumCommentScore")
-//    commentScoresDF.show()
+    val usersDF = getUsersDF(answerUserIDs).repartition(numPartitions, $"UserId")
 
-    val commentPostUserDF = commentsDF
-      .groupBy(commentsDF("CommentPostId"), commentsDF("CommentUserId"))
-      .agg(count(commentsDF("*")).as("CommentsByAuthor"))
-//      commentPostUserDF.show()
+    val commentsDF: DataFrame = getCommentsDf(answerUserIDs).repartition(numPartitions, $"CommentPostId")
+    val commentScoresDF: DataFrame = getCommentScoresDF(commentsDF).repartition(numPartitions, $"CommentScorePostId")
+//    val commentPostUserDF: DataFrame = getCommentPostUserDF(commentsDF).repartition(numPartitions, $"CommentPostId")
 
-    // Create a DF of Questions
-    val questionsDF = postsRdd
-      .filter(post => post.PostTypeId == 1)
-        .filter(post => post.ClosedDate.isEmpty) // Only unclosed questions
-        .map(post => Questions.Extract(post)).toDF()
-//    questionsDF.show()
+//    val postHistoriesUserDF: DataFrame = getPostHistoriesDF(answerUserIDs, numPartitions).repartition(numPartitions, $"HistoryPostId")
 
-    // Create a DF of Answers
-    val answersDF = postsRdd
-      .filter(post => post.PostTypeId == 2)
-      .map(post => Answers.Extract(post)).toDF()
-//    answersDF.show()
+    val postLinksDF: DataFrame = getPostLinksDF(answerPostIDs).repartition(numPartitions, $"LinkPostId")
 
-    val answerFeaturesDF = questionsDF
-      .join(answersDF, questionsDF("QuestionId") === answersDF("ParentId"), "left_outer")
-      .withColumn("TimeSinceCreation", answersDF("AnswerCreationDate") - questionsDF("QuestionCreationDate"))
-      .drop("AnswerCreationDate").drop("QuestionCreationDate").drop("ParentId").drop("QuestionId")
-//    answerFeaturesDF.show()  // Prints a little weird because the arabic goes from right to left
+    val votesDF = getVotesDF(answerPostIDs).repartition(numPartitions, $"VotePostId")
 
-    val postHistoriesDF = postHistoryRdd
-      .filter(post => post.HistoryUserId.isDefined).toDF
+    val userData: DataFrame = usersDF.join(badgesDF, usersDF("UserId") === badgesDF("BadgeUserId"), "left_outer")
+      .drop("BadgeUserId")
+      .na.fill(0)
+      .repartition(numPartitions, $"UserId")
 
-    val postHistoriesUserDF = postHistoriesDF
-      .groupBy(postHistoriesDF("HistoryPostId"), postHistoriesDF("HistoryUserId"))
-      .agg(count(postHistoriesDF("*")).as("PosterEditCount"))
-      .orderBy(postHistoriesDF("HistoryPostId"), postHistoriesDF("HistoryUserId"))
-//    postHistoriesUserDF.show()
-
-    val postLinksDF = postLinksRdd
-      .map(postLink => (postLink.LinkPostId, 1))
-      .reduceByKey(_ + _)
-      .toDF("LinkPostId", "LinksCount")
-//    postLinksDF.show()
-
-    val usersDF = usersRdd.toDF()
-//    usersDF.show()
-
-    val voteCountsRdd: RDD[Row] = votesRdd
-      .map(vote => (vote.VotePostId, vote.VoteTypeId))
-      .aggregateByKey(ListBuffer.empty[Int])(Utility.AddToListBuffer[Int],
-      Utility.CombineBuffers[Int])
-      .mapValues(_.toList)
-      .mapValues(values => Utility.MapListOfItemsToCounts(values, Votes.importantVoteTypes.keys.toList))
-      .map({case (id, votes) => Row(id :: votes:_*)})
-
-    val votesDF = spark.createDataFrame(voteCountsRdd, Votes.votesDFSchema)
-//    votesDF.show()
-
-//      .join(badgesDF, "UserID")  /// Could do this using common field
-    val userData = usersDF.join(badgesDF, usersDF("UserId") === badgesDF("BadgeUserId"), "left_outer")
-      .drop("BadgeUserId").na.fill(0)
-//    userData.show()
-
-    val totalAnswer = answerFeaturesDF
-      .join(commentPostUserDF, $"AnswerId" === commentPostUserDF("CommentPostId") && $"OwnerUserId" === commentPostUserDF("CommentUserId"), "left_outer")
+    val postData: DataFrame = answerFeaturesDF
+//      .join(commentPostUserDF, $"AnswerId" === commentPostUserDF("CommentPostId") && $"OwnerUserId" === commentPostUserDF("CommentUserId"), "left_outer")
+//      .repartition(2, $"AnswerId")
       .join(commentScoresDF, $"AnswerId" === commentScoresDF("CommentScorePostId"), "left_outer")
-      .join(postHistoriesUserDF, $"AnswerId" === postHistoriesUserDF("HistoryPostId") && $"OwnerUserId" === postHistoriesUserDF("HistoryUserId"), "left_outer")
+        .repartition(numPartitions, $"AnswerId")
+//      .join(postHistoriesUserDF, $"AnswerId" === postHistoriesUserDF("HistoryPostId") && $"OwnerUserId" === postHistoriesUserDF("HistoryUserId"), "left_outer")
+//      .repartition(2, $"AnswerId")
       .join(postLinksDF, $"AnswerId" === postLinksDF("LinkPostId"), "left_outer")
+      .repartition(numPartitions, $"AnswerId")
       .join(votesDF, $"AnswerId" === votesDF("VotePostId"), "left_outer")
-      .drop("VotePostId").drop("LinkPostId").drop("HistoryPostId")
-      .drop("CommentPostId").drop("CreationDate").drop("CommentUserId")
-        .drop("CommentScorePostId").drop("HistoryUserId").na.fill(0)
+      .drop("VotePostId").drop("LinkPostId")
+      .drop("CreationDate").drop("CommentScorePostId")
+      .drop("HistoryUserId").drop("HistoryPostId")
+      .drop("CommentPostId").drop("CommentUserId")
+      .na.fill(0).repartition(numPartitions, $"OwnerUserId")
 
-    val finalAnswerJoin = totalAnswer.join(userData, totalAnswer("OwnerUserId") === userData("UserId"), "left_outer").drop("OwnerUserId")
+    val finalAnswerJoin = postData.join(userData, postData("OwnerUserId") === userData("UserId"), "left_outer")
+      .drop("OwnerUserId")
     finalAnswerJoin.show()
 
     sc.stop()
   }
 }
 
-////// Old work trying to get the spark-xml library to function properly
-//    val test: String = sc.textFile(Users.FilePath).map(str => str.replaceAll(" />", "></row>")).reduce(_ + _)
+//    print("s" + votesDF.rdd.partitions.size)
+//    print("s" + commentPostUserDF.rdd.partitions.size)
+//    print("s" + postHistoriesUserDF.rdd.partitions.size)
+//    print("s" + postLinksDF.rdd.partitions.size)
+//    print("s" + badgesDF.rdd.partitions.size)
+//    print("s" + usersDF.rdd.partitions.size)
 
-//     val df: DataFrame =
-//       sparkSession.read.format("xml")
-//       .option("rootTag", "tags")
-//       .option("excludeAttribute", "false")
-//       .option("rowTag", "row")
-//      .load(Users.FilePath)
-//      .collect()
+//    usersDF.show()
+//    badgesDF.show()
+//    answersDF.show()
+//    questionsDF.show()
+//    answerFeaturesDF.show()
+//    commentsDF.show()
+//    commentScoresDF.show()
+//    postLinksDF.show()
+//    votesDF.show()
 
-//    df = sqlContext.read
-//      .format("com.databricks.spark.xml")
-//      .option("rowTag", "row")
-//      .load(Users.FilePath)
-
-////// Old work on badgesDF
-
-//    val badgesDF = badgesRdd.toDF()
-//    val resultBadges = badgesDF
-//      .select(badgesDF("UserId"), badgesDF("Name"))
-//      .groupBy(badgesDF("UserId"))
-//      .count()
-//      .orderBy(badgesDF("UserId"))
-//      .where(badgesDF("Name").isin(importantBadges:_*))
-
-//    resultBadges.show()
