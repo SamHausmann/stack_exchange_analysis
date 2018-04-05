@@ -12,6 +12,8 @@ libraryDependencies += "org.apache.hadoop" % "hadoop-aws" % "2.7.3" excludeAll(
 
 libraryDependencies += "junit" % "junit" % "4.10" % Test
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % "2.1.0",
-  "org.apache.spark" %% "spark-sql" % "2.1.0"
+  "org.apache.spark" %% "spark-core" % "2.2.0",
+  "org.apache.spark" %% "spark-sql" % "2.2.0"
 )
+
+libraryDependencies += "com.github.seratch" %% "awscala" % "0.6.+"

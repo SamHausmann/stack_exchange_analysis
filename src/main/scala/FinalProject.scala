@@ -1,10 +1,10 @@
 package XMLParse
 
-import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.rdd.RDD
+import awscala._, s3._
 
 import scala.collection.mutable.ListBuffer
 
@@ -20,8 +20,8 @@ object FinalProject {
 
   val dataPointRow : String = "  <row "
 
-  def getBadgesDF(answerUserIDs: List[Int]): DataFrame = {
-    val badgesRdd: RDD[Badge] = sc.textFile(Badges.filePath)
+  def getBadgesDF(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+    val badgesRdd: RDD[Badge] = sc.textFile(Badges.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow)).map(Badges.Parse)
       .filter(badge => answerUserIDs.contains(badge.BadgeUserId))
 
@@ -39,8 +39,8 @@ object FinalProject {
     spark.createDataFrame(badgeCountsRdd, Badges.badgesDFSchema)
   }
 
-  def getCommentsDf(answerUserIDs: List[Int]): DataFrame = {
-    sc.textFile(Comments.filePath)
+  def getCommentsDf(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+    sc.textFile(Comments.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Comments.Parse)
       .filter(comments => comments.CommentUserId.isDefined)
@@ -55,8 +55,8 @@ object FinalProject {
       .agg(sum("Score")).toDF("CommentScorePostId", "SumCommentScore")
   }
 
-  def getPostsRDD(): RDD[Post] = {
-    sc.textFile(Posts.filePath).filter(s => s.startsWith(dataPointRow))
+  def getPostsRDD(exchange: String, bucket: String): RDD[Post] = {
+    sc.textFile(Posts.filePath(exchange, bucket)).filter(s => s.startsWith(dataPointRow))
       .map(Posts.Parse)
       .filter(post => post.OwnerUserId.isDefined)
   }
@@ -78,14 +78,14 @@ object FinalProject {
 
   def getAnswerFeaturesDF(answersDF: DataFrame, questionsDF: DataFrame): DataFrame = {
     questionsDF
-      .join(answersDF, questionsDF("QuestionId") === answersDF("ParentId"), "left_outer")
+      .join(questionsDF, questionsDF("QuestionId") === answersDF("ParentId"), "left_outer")
       .withColumn("TimeSinceCreation", answersDF("AnswerCreationDate") - questionsDF("QuestionCreationDate"))
       .drop("AnswerCreationDate").drop("QuestionCreationDate")
       .drop("ParentId").drop("QuestionId")
   }
 
-  def getPostLinksDF(answerPostIDs: List[Int]): DataFrame = {
-    sc.textFile(PostLinks.filePath)
+  def getPostLinksDF(answerPostIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+    sc.textFile(PostLinks.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(PostLinks.Parse)
       .filter(postLink => answerPostIDs.contains(postLink.LinkPostId))
@@ -94,16 +94,16 @@ object FinalProject {
       .toDF("LinkPostId", "LinksCount")
   }
 
-  def getUsersDF(answerUserIDs: List[Int]): DataFrame = {
-    sc.textFile(Users.filePath)
+  def getUsersDF(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+    sc.textFile(Users.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Users.Parse)
       .filter(user => answerUserIDs.contains(user.UserId))
       .toDF()
   }
 
-  def getVotesDF(answerPostIDs: List[Int]): DataFrame = {
-    val votesRdd: RDD[Vote] = sc.textFile(Votes.filePath)
+  def getVotesDF(answerPostIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+    val votesRdd: RDD[Vote] = sc.textFile(Votes.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Votes.Parse)
       .filter(vote => answerPostIDs.contains(vote.VotePostId))
@@ -121,11 +121,20 @@ object FinalProject {
 
   def main(args: Array[String]) {
 
+    implicit val s3 = S3()
+
+    if (args.length < 2) {
+      println("CLI arg 0: <Exchange>, CLI arg 1: <S3_Bucket>")
+    }
+    val exchange: String = args(0)
+    val bucket: String = args(1)
+
+
 //    val test = sc.textFile("s3a://stack.exchange.analysis/testfile.xml")
 //    test.collect().map(println)
 //    sc..setConf("spark.sql.shuffle.partitions", "300")
 
-    val postsRDD: RDD[Post] = getPostsRDD().cache()
+    val postsRDD: RDD[Post] = getPostsRDD(exchange, bucket).cache()
     val numPartitions: Int = postsRDD.getNumPartitions
 
     spark.sqlContext.setConf("spark.sql.shuffle.partitions", numPartitions.toString)
@@ -138,16 +147,16 @@ object FinalProject {
     val questionsDF: DataFrame = getQuestionsDF(postsRDD, answerUserIDs).repartition($"QuestionId")
     val answerFeaturesDF: DataFrame = getAnswerFeaturesDF(answersDF, questionsDF).repartition($"AnswerId")
 
-    val badgesDF: DataFrame = getBadgesDF(answerUserIDs).repartition($"BadgeUserId")
+    val badgesDF: DataFrame = getBadgesDF(answerUserIDs, exchange, bucket).repartition($"BadgeUserId")
 
-    val usersDF = getUsersDF(answerUserIDs).repartition($"UserId")
+    val usersDF = getUsersDF(answerUserIDs, exchange, bucket).repartition($"UserId")
 
-    val commentsDF: DataFrame = getCommentsDf(answerUserIDs).repartition($"CommentPostId")
+    val commentsDF: DataFrame = getCommentsDf(answerUserIDs, exchange, bucket).repartition($"CommentPostId")
     val commentScoresDF: DataFrame = getCommentScoresDF(commentsDF).repartition($"CommentScorePostId")
 
-    val postLinksDF: DataFrame = getPostLinksDF(answerPostIDs).repartition($"LinkPostId")
+    val postLinksDF: DataFrame = getPostLinksDF(answerPostIDs, exchange, bucket).repartition($"LinkPostId")
 
-    val votesDF = getVotesDF(answerPostIDs).repartition($"VotePostId")
+    val votesDF = getVotesDF(answerPostIDs, exchange, bucket).repartition($"VotePostId")
 
     val userData: DataFrame = usersDF.join(badgesDF, usersDF("UserId") === badgesDF("BadgeUserId"), "left_outer")
       .drop("BadgeUserId")
@@ -171,5 +180,9 @@ object FinalProject {
     finalAnswerJoin.show()
 
     sc.stop()
+
+    val bucket = s3.bucket("hausmanbucket")
+    finalAnswerJoin.write.format("csv").save("src/main/resources/FinalProject/output.csv")
+    bucket.put("src/main/resources/FinalProject/output.csv")
   }
 }

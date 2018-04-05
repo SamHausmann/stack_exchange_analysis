@@ -6,10 +6,15 @@ import java.util.TimeZone
 
 abstract class BaseFile {
 
-  private[XMLParse] def FilePath(fileName: String) = {
+  /*private[XMLParse] def FilePath(fileName: String) = {
     val resource = this.getClass.getClassLoader.getResource(fileName)
     if (resource == null) sys.error("Could not locate file")
     new File(resource.toURI).getPath
+  }*/
+  private[XMLParse] def FilePath(fileName: String, bucketName: String) = {
+    val resource = "s3a://" + bucketName + "/" + fileName
+    if (resource == null) sys.error("Could not locate resource")
+    resource
   }
 
   private[XMLParse] def parseOptionInt(int: scala.xml.NodeSeq): Option[Int] =

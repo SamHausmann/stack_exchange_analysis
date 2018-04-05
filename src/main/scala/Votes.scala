@@ -10,7 +10,12 @@ object Votes extends BaseFile {
 
   val votesDFSchema = StructType(StructField("VotePostId", IntegerType, true) :: importantVoteTypes.values.map(field => StructField(field, IntegerType, true)).toList)
 
-  val filePath = FilePath("FinalProject/Votes.xml")
+  //val filePath = FilePath("Votes")
+
+  private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
+  	val fp = FilePath(exchange + "_Votes.xml", bucketName)
+  	fp
+  }
 
   private[XMLParse] def Parse(vote: String): Vote = {
     val xmlNode = scala.xml.XML.loadString(vote)

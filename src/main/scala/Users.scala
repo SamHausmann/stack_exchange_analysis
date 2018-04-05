@@ -11,7 +11,12 @@ case class User(UserId: Int,
 
 object Users extends BaseFile {
 
-  val filePath = FilePath("FinalProject/Users.xml")
+  //val filePath = FilePath("User")
+
+  private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
+    val fp = FilePath(exchange + "_User.xml", bucketName)
+    fp
+  }
 
 
   private[XMLParse] def Parse(user: String): User = {

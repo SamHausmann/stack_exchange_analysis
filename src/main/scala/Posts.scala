@@ -15,7 +15,12 @@ case class Post(Id: Int,
 
 object Posts extends BaseFile {
 
-  val filePath = FilePath("FinalProject/Posts.xml")
+  //val filePath = FilePath("Posts")
+
+  private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
+    val fp = FilePath(exchange + "_Posts.xml", bucketName)
+    fp
+  }
 
   private[XMLParse] def Parse(post: String): Post = {
     val xmlNode = scala.xml.XML.loadString(post)

@@ -7,7 +7,12 @@ case class Badge(BadgeUserId: Int,
 
 object Badges extends BaseFile {
 
-  val filePath = FilePath("FinalProject/Badges.xml")
+  //val filePath = FilePath("Badges")
+
+  private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
+    val fp = FilePath(exchange + "_Badges.xml", bucketName)
+    fp
+  }
 
   val importantBadges : List[String] = List("Suffrage", "Electorate", "Civic Duty", "Explainer", "Refiner", "Nice Question")
 
