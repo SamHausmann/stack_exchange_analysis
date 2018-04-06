@@ -11,7 +11,8 @@ case class Post(Id: Int,
                 OwnerUserId: Option[Int],
                 ClosedDate: Option[Long],
                 CommentCount: Option[Int],
-                FavoriteCount: Option[Int])
+                FavoriteCount: Option[Int],
+                IsValid: Boolean)
 
 object Posts extends BaseFile {
 
@@ -23,19 +24,25 @@ object Posts extends BaseFile {
   }
 
   private[XMLParse] def Parse(post: String): Post = {
-    val xmlNode = scala.xml.XML.loadString(post)
-    Post(
-    (xmlNode \ "@Id").text.toInt,
-    (xmlNode \ "@PostTypeId").text.toInt,
-    parseOptionInt(xmlNode \ "@ParentId"),
-    parseOptionInt(xmlNode \ "@AcceptedAnswerId"),
-    parseDate(xmlNode \ "@CreationDate"),
-    (xmlNode \ "@Score").text.toInt,
-    parseOptionInt(xmlNode \ "@ViewCount"),
-    (xmlNode \ "@Body").text,
-    parseOptionInt(xmlNode \ "@OwnerUserId"),
-    parseOptionDate(xmlNode \ "@ClosedDate"),
-    parseOptionInt(xmlNode \ "@CommentCount"),
-    parseOptionInt(xmlNode \ "@FavoriteCount"))
+    try {
+      val xmlNode = scala.xml.XML.loadString(post)
+      Post(
+        (xmlNode \ "@Id").text.toInt,
+        (xmlNode \ "@PostTypeId").text.toInt,
+        parseOptionInt(xmlNode \ "@ParentId"),
+        parseOptionInt(xmlNode \ "@AcceptedAnswerId"),
+        parseDate(xmlNode \ "@CreationDate"),
+        (xmlNode \ "@Score").text.toInt,
+        parseOptionInt(xmlNode \ "@ViewCount"),
+        (xmlNode \ "@Body").text,
+        parseOptionInt(xmlNode \ "@OwnerUserId"),
+        parseOptionDate(xmlNode \ "@ClosedDate"),
+        parseOptionInt(xmlNode \ "@CommentCount"),
+        parseOptionInt(xmlNode \ "@FavoriteCount"),
+        true)
+    } catch {
+      case _: Exception =>
+        Post(0,0,Some(0),Some(0),0,0,Some(0),"",Some(0),Some(0),Some(0),Some(0),false)
+    }
   }
 }

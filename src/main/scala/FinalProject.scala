@@ -66,15 +66,17 @@ object FinalProject {
   }
 
   def getPostsRDD(exchange: String, bucket: String): RDD[Post] = {
-    sc.textFile(Posts.filePath(exchange, bucket)).filter(s => s.startsWith(dataPointRow))
+    sc.textFile(Posts.filePath(exchange, bucket))
+      .filter(s => s.startsWith(dataPointRow))
       .map(Posts.Parse)
+      .filter(post => post.IsValid)
       .filter(post => post.OwnerUserId.isDefined)
   }
 
   def getAnswersDF(postsRdd: RDD[Post]): DataFrame = {
     postsRdd
       .filter(post => post.PostTypeId == 2)
-      .map(post => Answers.Extract(post)).toDF()
+      .map(post => Answers.Extract(post)).toDF().drop("IsValid")
   }
 
   def getQuestionsDF(postsRDD: RDD[Post], answerUserIDs: List[Int]): DataFrame = {
@@ -83,7 +85,7 @@ object FinalProject {
       .filter(post => post.PostTypeId == 1)
       .filter(post => post.ClosedDate.isEmpty) // Only unclosed questions
       .map(post => Questions.Extract(post))
-      .toDF()
+      .toDF().drop("IsValid")
   }
 
   def getAnswerFeaturesDF(answersDF: DataFrame, questionsDF: DataFrame): DataFrame = {
