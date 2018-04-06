@@ -184,7 +184,6 @@ object FinalProject {
       .drop("OwnerUserId")
 
     finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://hausmanbucket/" +  exchange + ".csv")
-    println("s3a://hausmanbucket/" +  exchange + ".csv")
 
     sc.stop()
   }
