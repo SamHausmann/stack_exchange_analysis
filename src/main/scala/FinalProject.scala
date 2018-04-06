@@ -4,13 +4,16 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.rdd.RDD
-import awscala._, s3._
 
 import scala.collection.mutable.ListBuffer
 
 object FinalProject {
 
-  val conf: SparkConf = new SparkConf().setAppName("SimpleSpark").setMaster("local[2]")
+  val dataPointRow : String = "  <row "
+
+  def main(args: Array[String]) {
+
+  val conf: SparkConf = new SparkConf().setAppName("SimpleSpark")//.setMaster("local[2]")
   val sc: SparkContext = new SparkContext(conf)
 //  sc.hadoopConfiguration.set("fs.s3a.access.key", "")
 //  sc.hadoopConfiguration.set("fs.s3a.secret.key", "")
@@ -18,9 +21,14 @@ object FinalProject {
 
   import spark.implicits._
 
-  val dataPointRow : String = "  <row "
+    if (args.length < 2) {
+      println("CLI arg 0: <Exchange>, CLI arg 1: <S3_Bucket>")
+    }
+    val exchange: String = args(0)
+    val bucket: String = args(1)
 
-  def getBadgesDF(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+
+      def getBadgesDF(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
     val badgesRdd: RDD[Badge] = sc.textFile(Badges.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow)).map(Badges.Parse)
       .filter(badge => answerUserIDs.contains(badge.BadgeUserId))
@@ -77,8 +85,8 @@ object FinalProject {
   }
 
   def getAnswerFeaturesDF(answersDF: DataFrame, questionsDF: DataFrame): DataFrame = {
-    questionsDF
-      .join(questionsDF, questionsDF("QuestionId") === answersDF("ParentId"), "left_outer")
+    answersDF
+      .join(questionsDF, answersDF("ParentId") === questionsDF("QuestionId"), "left_outer")
       .withColumn("TimeSinceCreation", answersDF("AnswerCreationDate") - questionsDF("QuestionCreationDate"))
       .drop("AnswerCreationDate").drop("QuestionCreationDate")
       .drop("ParentId").drop("QuestionId")
@@ -118,16 +126,6 @@ object FinalProject {
 
     spark.createDataFrame(voteCountsRdd, Votes.votesDFSchema)
   }
-
-  def main(args: Array[String]) {
-
-    implicit val s3 = S3()
-
-    if (args.length < 2) {
-      println("CLI arg 0: <Exchange>, CLI arg 1: <S3_Bucket>")
-    }
-    val exchange: String = args(0)
-    val bucket: String = args(1)
 
 
 //    val test = sc.textFile("s3a://stack.exchange.analysis/testfile.xml")
@@ -177,12 +175,10 @@ object FinalProject {
 
     val finalAnswerJoin = postData.join(userData, postData("OwnerUserId") === userData("UserId"), "left_outer")
       .drop("OwnerUserId")
-    finalAnswerJoin.show()
+
+    finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://hausmanbucket/" +  exchange + ".csv")
+    println("s3a://hausmanbucket/" +  exchange + ".csv")
 
     sc.stop()
-
-    val bucket = s3.bucket("hausmanbucket")
-    finalAnswerJoin.write.format("csv").save("src/main/resources/FinalProject/output.csv")
-    bucket.put("src/main/resources/FinalProject/output.csv")
   }
 }
