@@ -13,7 +13,7 @@ object FinalProject {
 
   def main(args: Array[String]) {
 
-  val conf: SparkConf = new SparkConf().setAppName("SimpleSpark")//.setMaster("local[2]")
+  val conf: SparkConf = new SparkConf().setAppName("FinalProject")
   val sc: SparkContext = new SparkContext(conf)
 //  sc.hadoopConfiguration.set("fs.s3a.access.key", "")
 //  sc.hadoopConfiguration.set("fs.s3a.secret.key", "")
@@ -21,16 +21,17 @@ object FinalProject {
 
   import spark.implicits._
 
-    if (args.length < 2) {
-      println("CLI arg 0: <Exchange>, CLI arg 1: <S3_Bucket>")
-    }
-    val exchange: String = args(0)
-    val bucket: String = args(1)
+  if (args.length < 2) {
+    println("CLI arg 0: <Exchange>, CLI arg 1: <S3_Bucket>")
+  }
+  val exchange: String = args(0)
+  val bucket: String = args(1)
 
-
-      def getBadgesDF(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+  def getBadgesDF(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
     val badgesRdd: RDD[Badge] = sc.textFile(Badges.filePath(exchange, bucket))
-      .filter(s => s.startsWith(dataPointRow)).map(Badges.Parse)
+      .filter(s => s.startsWith(dataPointRow))
+      .map(Badges.Parse)
+      .filter(badge => badge.IsValid)
       .filter(badge => answerUserIDs.contains(badge.BadgeUserId))
 
     val badgeCountsRdd: RDD[Row] = badgesRdd
@@ -51,9 +52,10 @@ object FinalProject {
     sc.textFile(Comments.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Comments.Parse)
+      .filter(comment => comment.IsValid)
       .filter(comments => comments.CommentUserId.isDefined)
       .filter(comment => answerUserIDs.contains(comment.CommentUserId.get))
-      .toDF
+      .toDF.drop("IsValid")
   }
 
   // Get a DF of postId and sum of comment score counts on a post
@@ -96,6 +98,7 @@ object FinalProject {
     sc.textFile(PostLinks.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(PostLinks.Parse)
+      .filter(Link => Link.IsValid)
       .filter(postLink => answerPostIDs.contains(postLink.LinkPostId))
       .map(postLink => (postLink.LinkPostId, 1))
       .reduceByKey(_ + _)
@@ -107,13 +110,16 @@ object FinalProject {
       .filter(s => s.startsWith(dataPointRow))
       .map(Users.Parse)
       .filter(user => answerUserIDs.contains(user.UserId))
+      .filter(user => user.IsValid)
       .toDF()
+      .drop("IsValid")
   }
 
   def getVotesDF(answerPostIDs: List[Int], exchange: String, bucket: String): DataFrame = {
     val votesRdd: RDD[Vote] = sc.textFile(Votes.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Votes.Parse)
+      .filter(vote => vote.IsValid)
       .filter(vote => answerPostIDs.contains(vote.VotePostId))
 
     val voteCountsRdd: RDD[Row] = votesRdd
@@ -126,7 +132,6 @@ object FinalProject {
 
     spark.createDataFrame(voteCountsRdd, Votes.votesDFSchema)
   }
-
 
 //    val test = sc.textFile("s3a://stack.exchange.analysis/testfile.xml")
 //    test.collect().map(println)

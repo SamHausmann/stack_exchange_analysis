@@ -2,7 +2,7 @@ package XMLParse
 
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 
-case class Vote(VotePostId: Int, VoteTypeId: Int)
+case class Vote(VotePostId: Int, VoteTypeId: Int, IsValid: Boolean)
 
 object Votes extends BaseFile {
 
@@ -18,8 +18,12 @@ object Votes extends BaseFile {
   }
 
   private[XMLParse] def Parse(vote: String): Vote = {
-    val xmlNode = scala.xml.XML.loadString(vote)
-    Vote((xmlNode \ "@PostId").text.toInt,
-      (xmlNode \ "@VoteTypeId").text.toInt)
+    try {
+      val xmlNode = scala.xml.XML.loadString(vote)
+      Vote((xmlNode \ "@PostId").text.toInt,
+        (xmlNode \ "@VoteTypeId").text.toInt, true)
+    } catch {
+      case _: Exception => Vote(0,0,false)
+    }
   }
 }

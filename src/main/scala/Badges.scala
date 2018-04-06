@@ -3,7 +3,8 @@ package XMLParse
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 
 case class Badge(BadgeUserId: Int,
-                 Name: String)
+                 Name: String,
+                 IsValid: Boolean)
 
 object Badges extends BaseFile {
 
@@ -19,9 +20,14 @@ object Badges extends BaseFile {
   val badgesDFSchema = StructType(StructField("BadgeUserId", IntegerType, true) :: importantBadges.map(fieldName => StructField(fieldName, IntegerType, true)))
 
   private[XMLParse] def Parse(badge: String): Badge = {
-    val xmlNode = scala.xml.XML.loadString(badge)
-    Badge(
-      (xmlNode \ "@UserId").text.toInt,
-      (xmlNode \ "@Name").text)
+    try {
+      val xmlNode = scala.xml.XML.loadString(badge)
+      Badge(
+        (xmlNode \ "@UserId").text.toInt,
+        (xmlNode \ "@Name").text,
+        true)
+    } catch {
+      case _: Exception => Badge(0,"",false)
+    }
   }
 }

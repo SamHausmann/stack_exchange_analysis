@@ -7,7 +7,8 @@ case class User(UserId: Int,
                 AboutMeLength: Int,
                 Views: Int,
                 UpVotes: Int,
-                DownVotes: Int)
+                DownVotes: Int,
+                IsValid: Boolean)
 
 object Users extends BaseFile {
 
@@ -20,15 +21,20 @@ object Users extends BaseFile {
 
 
   private[XMLParse] def Parse(user: String): User = {
-    val xmlNode = scala.xml.XML.loadString(user)
-    User(
-      (xmlNode \ "@Id").text.toInt,
-      (xmlNode \ "@Reputation").text.toInt,
-      parseDate(xmlNode \ "@CreationDate"),
-      parseOptionInt(xmlNode \ "@Age"),
-      (xmlNode \ "@AboutMe").text.split(" ").length,
-      (xmlNode \ "@Views").text.toInt,
-      (xmlNode \ "@UpVotes").text.toInt,
-      (xmlNode \ "@DownVotes").text.toInt)
+    try {
+      val xmlNode = scala.xml.XML.loadString(user)
+      User(
+        (xmlNode \ "@Id").text.toInt,
+        (xmlNode \ "@Reputation").text.toInt,
+        parseDate(xmlNode \ "@CreationDate"),
+        parseOptionInt(xmlNode \ "@Age"),
+        (xmlNode \ "@AboutMe").text.split(" ").length,
+        (xmlNode \ "@Views").text.toInt,
+        (xmlNode \ "@UpVotes").text.toInt,
+        (xmlNode \ "@DownVotes").text.toInt,
+        true)
+    } catch {
+      case _: Exception => User(0,0,0,Some(0),0,0,0,0,false)
+    }
   }
 }

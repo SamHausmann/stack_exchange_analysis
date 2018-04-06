@@ -1,6 +1,6 @@
 package XMLParse
 
-case class PostLink(LinkPostId: Int)
+case class PostLink(LinkPostId: Int, IsValid: Boolean)
 
 object PostLinks extends BaseFile {
 
@@ -12,7 +12,11 @@ object PostLinks extends BaseFile {
   }
 
   private[XMLParse] def Parse(postLink: String): PostLink = {
-    val xmlNode = scala.xml.XML.loadString(postLink)
-    PostLink((xmlNode \ "@PostId").text.toInt)
+    try {
+      val xmlNode = scala.xml.XML.loadString(postLink)
+      PostLink((xmlNode \ "@PostId").text.toInt, true)
+    } catch {
+      case _: Exception => PostLink(0, false)
+    }
   }
 }

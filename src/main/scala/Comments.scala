@@ -2,7 +2,8 @@ package XMLParse
 
 case class Comment(CommentPostId: Int,
                    CommentUserId: Option[Int],
-                   Score: Int)
+                   Score: Int,
+                   IsValid: Boolean)
 
 object Comments extends BaseFile {
 
@@ -14,10 +15,15 @@ object Comments extends BaseFile {
   }
 
   private[XMLParse] def Parse(comment: String): Comment = {
-    val xmlNode = scala.xml.XML.loadString(comment)
-    Comment(
-      (xmlNode \ "@PostId").text.toInt,
-      parseOptionInt(xmlNode \ "@UserId"),
-      (xmlNode \ "@Score").text.toInt)
+    try {
+      val xmlNode = scala.xml.XML.loadString(comment)
+      Comment(
+        (xmlNode \ "@PostId").text.toInt,
+        parseOptionInt(xmlNode \ "@UserId"),
+        (xmlNode \ "@Score").text.toInt,
+        true)
+    } catch {
+      case _: Exception => Comment(0, Some(0), 0, false)
+    }
   }
 }
