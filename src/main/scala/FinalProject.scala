@@ -27,12 +27,11 @@ object FinalProject {
   val exchange: String = args(0)
   val bucket: String = args(1)
 
-  def getBadgesDF(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+  def getBadgesDF(exchange: String, bucket: String): DataFrame = {
     val badgesRdd: RDD[Badge] = sc.textFile(Badges.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Badges.Parse)
       .filter(badge => badge.IsValid)
-      .filter(badge => answerUserIDs.contains(badge.BadgeUserId))
 
     val badgeCountsRdd: RDD[Row] = badgesRdd
       .filter(badge => Badges.importantBadges.contains(badge.Name))
@@ -48,13 +47,12 @@ object FinalProject {
     spark.createDataFrame(badgeCountsRdd, Badges.badgesDFSchema)
   }
 
-  def getCommentsDf(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+  def getCommentsDf(exchange: String, bucket: String): DataFrame = {
     sc.textFile(Comments.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Comments.Parse)
       .filter(comment => comment.IsValid)
       .filter(comments => comments.CommentUserId.isDefined)
-      .filter(comment => answerUserIDs.contains(comment.CommentUserId.get))
       .toDF.drop("IsValid")
   }
 
@@ -79,9 +77,8 @@ object FinalProject {
       .map(post => Answers.Extract(post)).toDF().drop("IsValid")
   }
 
-  def getQuestionsDF(postsRDD: RDD[Post], answerUserIDs: List[Int]): DataFrame = {
+  def getQuestionsDF(postsRDD: RDD[Post]): DataFrame = {
     postsRDD
-      .filter(post => answerUserIDs.contains(post.OwnerUserId.get))
       .filter(post => post.PostTypeId == 1)
       .filter(post => post.ClosedDate.isEmpty) // Only unclosed questions
       .map(post => Questions.Extract(post))
@@ -96,33 +93,30 @@ object FinalProject {
       .drop("ParentId").drop("QuestionId")
   }
 
-  def getPostLinksDF(answerPostIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+  def getPostLinksDF(exchange: String, bucket: String): DataFrame = {
     sc.textFile(PostLinks.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(PostLinks.Parse)
       .filter(Link => Link.IsValid)
-      .filter(postLink => answerPostIDs.contains(postLink.LinkPostId))
       .map(postLink => (postLink.LinkPostId, 1))
       .reduceByKey(_ + _)
       .toDF("LinkPostId", "LinksCount")
   }
 
-  def getUsersDF(answerUserIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+  def getUsersDF(exchange: String, bucket: String): DataFrame = {
     sc.textFile(Users.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Users.Parse)
-      .filter(user => answerUserIDs.contains(user.UserId))
       .filter(user => user.IsValid)
       .toDF()
       .drop("IsValid")
   }
 
-  def getVotesDF(answerPostIDs: List[Int], exchange: String, bucket: String): DataFrame = {
+  def getVotesDF(exchange: String, bucket: String): DataFrame = {
     val votesRdd: RDD[Vote] = sc.textFile(Votes.filePath(exchange, bucket))
       .filter(s => s.startsWith(dataPointRow))
       .map(Votes.Parse)
       .filter(vote => vote.IsValid)
-      .filter(vote => answerPostIDs.contains(vote.VotePostId))
 
     val voteCountsRdd: RDD[Row] = votesRdd
       .map(vote => (vote.VotePostId, vote.VoteTypeId))
@@ -146,25 +140,25 @@ object FinalProject {
 
     val answersDF: DataFrame = getAnswersDF(postsRDD).repartition($"ParentId")
 
-    val answerUserIDs: List[Int] = answersDF.select("OwnerUserId").collect().map(_(0).asInstanceOf[Int]).toList
-    val answerPostIDs: List[Int] = answersDF.select("AnswerId").collect().map(_(0).asInstanceOf[Int]).toList
+    //val answerUserIDs: List[Int] = answersDF.select("OwnerUserId").collect().map(_(0).asInstanceOf[Int]).toList
+    //val answerPostIDs: List[Int] = answersDF.select("AnswerId").collect().map(_(0).asInstanceOf[Int]).toList
 
-    val questionsDF: DataFrame = getQuestionsDF(postsRDD, answerUserIDs).repartition($"QuestionId")
+    val questionsDF: DataFrame = getQuestionsDF(postsRDD).repartition($"QuestionId")
 
 //    postsRDD.unpersist()
 
     val answerFeaturesDF: DataFrame = getAnswerFeaturesDF(answersDF, questionsDF).repartition($"AnswerId")
 
-    val badgesDF: DataFrame = getBadgesDF(answerUserIDs, exchange, bucket).repartition($"BadgeUserId")
+    val badgesDF: DataFrame = getBadgesDF(exchange, bucket).repartition($"BadgeUserId")
 
-    val usersDF = getUsersDF(answerUserIDs, exchange, bucket).repartition($"UserId")
+    val usersDF = getUsersDF(exchange, bucket).repartition($"UserId")
 
-    val commentsDF: DataFrame = getCommentsDf(answerUserIDs, exchange, bucket).repartition($"CommentPostId")
+    val commentsDF: DataFrame = getCommentsDf(exchange, bucket).repartition($"CommentPostId")
     val commentScoresDF: DataFrame = getCommentScoresDF(commentsDF).repartition($"CommentScorePostId")
 
-    val postLinksDF: DataFrame = getPostLinksDF(answerPostIDs, exchange, bucket).repartition($"LinkPostId")
+    val postLinksDF: DataFrame = getPostLinksDF(exchange, bucket).repartition($"LinkPostId")
 
-    val votesDF = getVotesDF(answerPostIDs, exchange, bucket).repartition($"VotePostId")
+    val votesDF = getVotesDF(exchange, bucket).repartition($"VotePostId")
 
     val userData: DataFrame = usersDF.join(badgesDF, usersDF("UserId") === badgesDF("BadgeUserId"), "left_outer")
       .drop("BadgeUserId")
