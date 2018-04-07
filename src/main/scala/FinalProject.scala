@@ -139,10 +139,10 @@ object FinalProject {
 //    test.collect().map(println)
 //    sc..setConf("spark.sql.shuffle.partitions", "300")
 
-    val postsRDD: RDD[Post] = getPostsRDD(exchange, bucket).cache()
-    val numPartitions: Int = postsRDD.getNumPartitions
+    val postsRDD: RDD[Post] = getPostsRDD(exchange, bucket)//.cache()
+//    val numPartitions: Int = postsRDD.getNumPartitions
 
-    spark.sqlContext.setConf("spark.sql.shuffle.partitions", numPartitions.toString)
+//    spark.sqlContext.setConf("spark.sql.shuffle.partitions", numPartitions.toString)
 
     val answersDF: DataFrame = getAnswersDF(postsRDD).repartition($"ParentId")
 
@@ -150,6 +150,9 @@ object FinalProject {
     val answerPostIDs: List[Int] = answersDF.select("AnswerId").collect().map(_(0).asInstanceOf[Int]).toList
 
     val questionsDF: DataFrame = getQuestionsDF(postsRDD, answerUserIDs).repartition($"QuestionId")
+
+//    postsRDD.unpersist()
+
     val answerFeaturesDF: DataFrame = getAnswerFeaturesDF(answersDF, questionsDF).repartition($"AnswerId")
 
     val badgesDF: DataFrame = getBadgesDF(answerUserIDs, exchange, bucket).repartition($"BadgeUserId")
@@ -183,8 +186,12 @@ object FinalProject {
     val finalAnswerJoin = postData.join(userData, postData("OwnerUserId") === userData("UserId"), "left_outer")
       .drop("OwnerUserId")
 
-    finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://hausmanbucket/" +  exchange + ".csv")
+    val test = finalAnswerJoin.show(5)
+    finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://hausmanbucket/" +  exchange + "2.csv")
+//    finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://stack.exchange.analysis/" +  exchange + ".csv")
+//    finalAnswerJoin.coalesce(1).write.format("csv").option("header", "true").save("/home/ec2-user/test.csv")
 
     sc.stop()
   }
 }
+
