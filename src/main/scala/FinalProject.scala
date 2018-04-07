@@ -180,10 +180,10 @@ object FinalProject {
     val finalAnswerJoin = postData.join(userData, postData("OwnerUserId") === userData("UserId"), "left_outer")
       .drop("OwnerUserId")
 
+    finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://hausmanbucket/" +  exchange + "3.csv")
+    finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://stack.exchange.analysis/" +  exchange + ".csv")
+    finalAnswerJoin.coalesce(1).write.format("csv").option("header", "true").save("hdfs:///home/ec2-user/test.csv")
     val test = finalAnswerJoin.show(5)
-    finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://hausmanbucket/" +  exchange + "2.csv")
-//    finalAnswerJoin.repartition(1).write.format("csv").option("header", "true").save("s3a://stack.exchange.analysis/" +  exchange + ".csv")
-//    finalAnswerJoin.coalesce(1).write.format("csv").option("header", "true").save("/home/ec2-user/test.csv")
 
     sc.stop()
   }
