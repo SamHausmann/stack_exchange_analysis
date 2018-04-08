@@ -15,25 +15,26 @@ object FinalProjectPhase3 {
 
   def main(args: Array[String]) {
 
-    val conf: SparkConf = new SparkConf().setAppName("SimpleSpark").setMaster("local[2]")
+    val conf: SparkConf = new SparkConf().setAppName("Phase3")//.setMaster("local[2]")
     val sc: SparkContext = new SparkContext(conf)
     val spark: SparkSession = SparkSession.builder().config(conf).getOrCreate()
     import spark.implicits._
 
     if (args.length < 2) {
-      println("CLI arg 0: <Exchange>, CLI arg 1: <S3_Bucket>")
+      println("CLI arg 0: <S3_Bucket>, CLI arg 1: <Exchange>")
     }
 
-    val exchange: String = args(0)
-    val bucket: String = args(1)
+    val bucket: String = args(0)
+    val exchanges: Array[String] = args.drop(0)
 
-    val reducedData: DataFrame = spark
-      .read.format("csv")
-      .option("header", "true")
-      .option("inferSchema", "true")
-      .load("s3a://" + bucket + "/" + exchange)
-      .toDF()
-
+    var reducedData: DataFrame = exchanges.map(exchange => {
+      spark
+        .read.format("csv")
+        .option("header", "true")
+        .option("inferSchema", "true")
+        .load("s3a://" + bucket + "/" + exchange)
+        .toDF()
+    }).reduce(_.union(_))
 
     val featureCols = Array("Score", "ViewCount", "BodyLength", "CommentCount", "FavoriteCount", "TimeSinceCreation",
       "SumCommentScore", "LinksCount", "Offensive", "Favorite", "Reputation", "UserCreationDate",
