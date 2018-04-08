@@ -25,7 +25,7 @@ object FinalProjectPhase3 {
     }
 
     val bucket: String = args(0)
-    val exchanges: Array[String] = args.drop(0)
+    val exchanges: Array[String] = args.drop(1)
 
     var reducedData: DataFrame = exchanges.map(exchange => {
       spark
@@ -33,13 +33,19 @@ object FinalProjectPhase3 {
         .option("header", "true")
         .option("inferSchema", "true")
         .load("s3a://" + bucket + "/" + exchange)
-        .toDF()
+        .toDF().na.fill(0)
     }).reduce(_.union(_))
 
-    val featureCols = Array("Score", "ViewCount", "BodyLength", "CommentCount", "FavoriteCount", "TimeSinceCreation",
-      "SumCommentScore", "LinksCount", "Offensive", "Favorite", "Reputation", "UserCreationDate",
+ //   val featureCols = Array("Score", "ViewCount", "BodyLength", "CommentCount", "FavoriteCount", "TimeSinceCreation",
+ //     "SumCommentScore", "LinksCount", "Offensive", "Favorite", "Reputation", "UserCreationDate",
+ //     "Age", "AboutMeLength", "Views", "UpVotes", "DownVotes", "Suffrage", "Electorate", "Civic Duty",
+ //     "Explainer", "Refiner", "Nice Question")
+
+    val featureCols = Array("Score", "BodyLength", "CommentCount", "TimeSinceCreation",
+      "SumCommentScore", "Reputation", "UserCreationDate",
       "Age", "AboutMeLength", "Views", "UpVotes", "DownVotes", "Suffrage", "Electorate", "Civic Duty",
       "Explainer", "Refiner", "Nice Question")
+
 //    Array("Score", "UpVotes", "BodyLength", "CommentCount", "FavoriteCount")
 
     val assembler = new VectorAssembler().setInputCols(featureCols).setOutputCol("features")
