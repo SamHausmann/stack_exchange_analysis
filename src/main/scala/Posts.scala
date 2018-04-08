@@ -19,7 +19,7 @@ object Posts extends BaseFile {
   //val filePath = FilePath("Posts")
 
   private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
-    val fp = FilePath(exchange + "_Posts3.xml", bucketName)
+    val fp = FilePath(exchange + "_Posts.xml", bucketName)
     fp
   }
 
