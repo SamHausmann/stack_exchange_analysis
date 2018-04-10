@@ -1,22 +1,18 @@
 package XMLParse
 
-case class PostLink(LinkPostId: Int, IsValid: Boolean)
+case class PostLink(LinkPostId: Int)
 
+// Object to hold post link information
 object PostLinks extends BaseFile {
 
-  //val filePath = FilePath("PostLinks")
+  val filePath = FilePath("PostLinks")
 
-  private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
-  	val fp = FilePath(exchange + "_PostLinks.xml", bucketName)
-  	fp
-  }
-
-  private[XMLParse] def Parse(postLink: String): PostLink = {
+  private[XMLParse] def Parse(postLink: String): Option[PostLink] = {
     try {
       val xmlNode = scala.xml.XML.loadString(postLink)
-      PostLink((xmlNode \ "@PostId").text.toInt, true)
+      Some(PostLink((xmlNode \ "@PostId").text.toInt))
     } catch {
-      case _: Exception => PostLink(0, false)
+      case _: Exception => None
     }
   }
 }

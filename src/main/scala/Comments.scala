@@ -1,29 +1,23 @@
 package XMLParse
 
 case class Comment(CommentPostId: Int,
-                   CommentUserId: Option[Int],
-                   Score: Int,
-                   IsValid: Boolean)
+                   CommentUserId: Int,
+                   Score: Int)
 
+// File to hold comment information
 object Comments extends BaseFile {
 
-  //val filePath = FilePath("Comments")
+  val filePath = FilePath("Comments")
 
-  private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
-    val fp = FilePath(exchange + "_Comments.xml", bucketName)
-    fp
-  }
-
-  private[XMLParse] def Parse(comment: String): Comment = {
+  private[XMLParse] def Parse(comment: String): Option[Comment] = {
     try {
       val xmlNode = scala.xml.XML.loadString(comment)
-      Comment(
+      Some(Comment(
         (xmlNode \ "@PostId").text.toInt,
-        parseOptionInt(xmlNode \ "@UserId"),
-        (xmlNode \ "@Score").text.toInt,
-        true)
+        (xmlNode \ "@UserId").text.toInt,
+        (xmlNode \ "@Score").text.toInt))
     } catch {
-      case _: Exception => Comment(0, Some(0), 0, false)
+      case _: Exception => None
     }
   }
 }

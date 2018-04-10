@@ -3,31 +3,27 @@ package XMLParse
 import org.apache.spark.sql.types.{IntegerType, StructField, StructType}
 
 case class Badge(BadgeUserId: Int,
-                 Name: String,
-                 IsValid: Boolean)
+                 Name: String)
 
+// Object to store information about Badges
 object Badges extends BaseFile {
 
-  //val filePath = FilePath("Badges")
+  val filePath = FilePath("Badges")
 
-  private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
-    val fp = FilePath(exchange + "_Badges.xml", bucketName)
-    fp
-  }
-
+  // List of badges that we deemed potentially important
   val importantBadges : List[String] = List("Suffrage", "Electorate", "Civic Duty", "Explainer", "Refiner", "Nice Question")
+  // Schema created from above badges and UserId
+  val badgesDFSchema = StructType(StructField("BadgeUserId", IntegerType, true) ::
+    importantBadges.map(fieldName => StructField(fieldName, IntegerType, true)))
 
-  val badgesDFSchema = StructType(StructField("BadgeUserId", IntegerType, true) :: importantBadges.map(fieldName => StructField(fieldName, IntegerType, true)))
-
-  private[XMLParse] def Parse(badge: String): Badge = {
+  private[XMLParse] def Parse(badge: String): Option[Badge] = {
     try {
       val xmlNode = scala.xml.XML.loadString(badge)
-      Badge(
+      Some(Badge(
         (xmlNode \ "@UserId").text.toInt,
-        (xmlNode \ "@Name").text,
-        true)
+        (xmlNode \ "@Name").text))
     } catch {
-      case _: Exception => Badge(0,"",false)
+      case _: Exception => None
     }
   }
 }

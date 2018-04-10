@@ -10,6 +10,7 @@ case class Answer(AnswerId: Int,
                 CommentCount: Int,
                 FavoriteCount: Int)
 
+// Object to store answers to stack questions
 object Answers extends BaseFile {
 
   private[XMLParse] def Extract(post: Post): Answer = {
@@ -20,7 +21,7 @@ object Answers extends BaseFile {
       post.Score,
       post.ViewCount.getOrElse(0),
       post.Body.split(" ").length,
-      post.OwnerUserId.get,
+      post.OwnerUserId,
       post.CommentCount.getOrElse(0),
       post.FavoriteCount.getOrElse(0))
   }

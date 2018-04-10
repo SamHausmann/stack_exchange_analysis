@@ -7,23 +7,17 @@ case class User(UserId: Int,
                 AboutMeLength: Int,
                 Views: Int,
                 UpVotes: Int,
-                DownVotes: Int,
-                IsValid: Boolean)
+                DownVotes: Int)
 
+// Holds user information
 object Users extends BaseFile {
 
-  //val filePath = FilePath("User")
+  val filePath = FilePath("Users")
 
-  private[XMLParse] def filePath(exchange: String, bucketName: String): String = {
-    val fp = FilePath(exchange + "_Users.xml", bucketName)
-    fp
-  }
-
-
-  private[XMLParse] def Parse(user: String): User = {
+  private[XMLParse] def Parse(user: String): Option[User] = {
     try {
       val xmlNode = scala.xml.XML.loadString(user)
-      User(
+      Some(User(
         (xmlNode \ "@Id").text.toInt,
         (xmlNode \ "@Reputation").text.toInt,
         parseDate(xmlNode \ "@CreationDate"),
@@ -31,10 +25,9 @@ object Users extends BaseFile {
         (xmlNode \ "@AboutMe").text.split(" ").length,
         (xmlNode \ "@Views").text.toInt,
         (xmlNode \ "@UpVotes").text.toInt,
-        (xmlNode \ "@DownVotes").text.toInt,
-        true)
+        (xmlNode \ "@DownVotes").text.toInt))
     } catch {
-      case _: Exception => User(0,0,0,Some(0),0,0,0,0,false)
+      case _: Exception => None
     }
   }
 }
