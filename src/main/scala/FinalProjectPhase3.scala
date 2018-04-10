@@ -15,38 +15,20 @@ object FinalProjectPhase3 {
 
   def main(args: Array[String]) {
 
-    val conf: SparkConf = new SparkConf().setAppName("Phase3")//.setMaster("local[2]")
+    val conf: SparkConf = new SparkConf().setAppName("FinalProjectPhase3").setMaster("local[2]")
     val sc: SparkContext = new SparkContext(conf)
     val spark: SparkSession = SparkSession.builder().config(conf).getOrCreate()
     import spark.implicits._
 
-    if (args.length < 2) {
-      println("CLI arg 0: <S3_Bucket>, CLI arg 1: <Exchange>")
-    }
+    val resource = this.getClass.getClassLoader.getResource("FinalProjectPhase3/cleanData.csv")
+    val uri: String = new File(resource.toURI).getPath
+    val reducedData: DataFrame = spark.read.format("csv").option("header", "true").option("inferSchema", "true")
+    .load(uri).toDF().na.fill(0)
 
-    val bucket: String = args(0)
-    val exchanges: Array[String] = args.drop(1)
-
-    var reducedData: DataFrame = exchanges.map(exchange => {
-      spark
-        .read.format("csv")
-        .option("header", "true")
-        .option("inferSchema", "true")
-        .load("s3a://" + bucket + "/" + exchange)
-        .toDF().na.fill(0)
-    }).reduce(_.union(_))
-
- //   val featureCols = Array("Score", "ViewCount", "BodyLength", "CommentCount", "FavoriteCount", "TimeSinceCreation",
- //     "SumCommentScore", "LinksCount", "Offensive", "Favorite", "Reputation", "UserCreationDate",
- //     "Age", "AboutMeLength", "Views", "UpVotes", "DownVotes", "Suffrage", "Electorate", "Civic Duty",
- //     "Explainer", "Refiner", "Nice Question")
+    reducedData.show()
 
     val featureCols = Array("Score", "BodyLength", "CommentCount", "TimeSinceCreation",
-      "SumCommentScore", "Reputation", "UserCreationDate",
-      "Age", "AboutMeLength", "Views", "UpVotes", "DownVotes", "Suffrage", "Electorate", "Civic Duty",
-      "Explainer", "Refiner", "Nice Question")
-
-//    Array("Score", "UpVotes", "BodyLength", "CommentCount", "FavoriteCount")
+      "SumCommentScore", "UserCreationDate", "Age", "AboutMeLength", "Explainer", "Nice Question")
 
     val assembler = new VectorAssembler().setInputCols(featureCols).setOutputCol("features")
 
@@ -57,29 +39,28 @@ object FinalProjectPhase3 {
       .setWithStd(true)
       .setWithMean(true)
 
+    // Training and Test data
     val Array(trainingData: DataFrame, testData: DataFrame) = reducedData.randomSplit(Array(0.8, 0.2))
-
     trainingData.cache()
     testData.cache()
 
+    // Make and Run model
     val lr = new LogisticRegression()
       .setFeaturesCol("scaledFeatures")
       .setLabelCol("AcceptedByOriginator")
-
     val pipeline = new Pipeline().setStages(Array(assembler, scaler, lr))
-
     val model = pipeline.fit(trainingData)
     val result = model.transform(testData)
 
+    // Get correlations and coefficients
     val modelTrained = model.stages(2).asInstanceOf[LogisticRegressionModel]
-
     val Row(corrCoef: Matrix) = Correlation.corr(result, "scaledFeatures").head
 
+    // Evaluate model
     val evaluator = new BinaryClassificationEvaluator()
       .setLabelCol("AcceptedByOriginator")
       .setRawPredictionCol("rawPrediction")
     val accuracy = evaluator.evaluate(result)
-
     val lp = result.select(result("AcceptedByOriginator").alias("label"), result("prediction"))
     val trueN = lp.filter($"prediction" === 0.0).filter($"label" === $"prediction").count()
     val trueP = lp.filter($"prediction" === 1.0).filter($"label" === $"prediction").count()
@@ -88,7 +69,6 @@ object FinalProjectPhase3 {
 
     val pw = new PrintWriter(new File("test.txt"))
     pw.write("Features: " + featureCols.mkString(",") + "\n")
-    pw.write(corrCoef.toString(featureCols.length, Int.MaxValue) + "\n")
     pw.write("Coefficients: " + modelTrained.coefficients + "\n")
     pw.write("Intercept: " + modelTrained.intercept + "\n")
     pw.write("Pearson correlation matrix:\n" + corrCoef.toString(featureCols.length, Int.MaxValue))
@@ -100,7 +80,6 @@ object FinalProjectPhase3 {
     pw.close()
 
     println("Features: " + featureCols.mkString(",") + "\n")
-    println(corrCoef.toString(featureCols.length, Int.MaxValue) + "\n")
     println("Coefficients:" + modelTrained.coefficients + "\n")
     println("Intercept:" + modelTrained.intercept + "\n")
     println("Pearson correlation matrix:\n" + corrCoef.toString(featureCols.length, Int.MaxValue))

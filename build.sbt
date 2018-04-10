@@ -1,6 +1,6 @@
 scalaVersion := "2.11.8"
 
-name:= "FinalProject"
+name:= "FinalProjectPhase3"
 
 // Deprecation errors were being thrown with explicit constructing of a SQLContext
 //scalacOptions := Seq("-unchecked", "-deprecation")
